@@ -1,11 +1,19 @@
 package net.mephi.swtproject.components;
 
+import org.eclipse.swt.graphics.Point;
+
 /**
  * Created by Acer on 16.01.2016.
  */
 public class Food {
-    private int x;
-    private int y;
+    public static final int FOOD_SIZE_RADIUS = 10;
+
+    Point center;
+    Point leftTop;
+    private int color;
+    private boolean visible;
+
+
 
     public int getColor() {
         return color;
@@ -15,22 +23,10 @@ public class Food {
         this.color = color;
     }
 
-    private int color;
 
-    public int getX() {
-        return x;
-    }
-
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public void setY(int y) {
-        this.y = y;
+    public void setPosition(Point newPosition){
+        center = newPosition;
+        leftTop = new Point(center.x-FOOD_SIZE_RADIUS,center.y-FOOD_SIZE_RADIUS);
     }
 
     public boolean isVisible() {
@@ -41,6 +37,12 @@ public class Food {
         this.visible = visible;
     }
 
-    private boolean visible;
+    public Point getCenter(){
+        return center;
+    }
+    public Point getLeftTop(){
+        return  leftTop;
+    }
+
 
 }
