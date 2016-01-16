@@ -2,6 +2,7 @@ package net.mephi.swtproject;
 
 
 import net.mephi.swtproject.components.Board;
+import net.mephi.swtproject.components.InputDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -35,14 +36,21 @@ public class Main {
         FillLayout layout = new FillLayout();
         shell.setLayout(layout);
 
+
+
         Board board = new Board(shell);
 
         shell.setText("Bubble battle");
         int borW = shell.getSize().x - shell.getClientArea().width;
         int borH = shell.getSize().y - shell.getClientArea().height;
         shell.setSize(WIDTH + borW, HEIGHT + borH);
-
         shell.open();
+
+        InputDialog dlg = new InputDialog(shell);
+        String input = dlg.open();
+        if (input != null) {
+            board.setBallName(input);
+        }
 
         while (!shell.isDisposed()) {
             if (!display.readAndDispatch()) {

@@ -11,6 +11,8 @@ public class Ball {
     int radius;
     int speed;
 
+    String name = "";
+
 
 
     Ball(){
@@ -18,6 +20,7 @@ public class Ball {
         leftTop = new Point(center.x-radius,center.y-radius);
         radius = 25;
         speed = 15;
+        this.name = "Anonym";
 
     }
 
@@ -60,6 +63,12 @@ public class Ball {
         double minCollisionLength = Food.FOOD_SIZE_RADIUS/2+radius;
         double curLen = Math.sqrt(Math.pow(food.getCenter().x - center.x, 2) + Math.pow(food.getCenter().y - center.y, 2));
         return curLen<minCollisionLength;
+    }
+    public void setName(String newName){
+        name = newName;
+    }
+    public String getName(){
+        return name;
     }
 
 }

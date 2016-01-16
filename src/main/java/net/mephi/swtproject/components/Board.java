@@ -127,6 +127,16 @@ Ball ball = new Ball();
                 e.gc.setBackground(display.getSystemColor(SWT.COLOR_CYAN));
                 e.gc.fillOval(ball.leftTop.x, ball.leftTop.y, ball.radius*2, ball.radius*2);
 
+                //нарисовать имя
+                Font font = new Font(e.display, "Helvetica", ball.radius/3, SWT.NORMAL);
+                Color col = new Color(e.display, 0, 0, 0);
+                gc.setFont(font);
+                gc.setForeground(col);
+                Point size = gc.textExtent(ball.getName());
+                gc.drawText(ball.getName(), ball.getCenterPosition().x-size.x/2, ball.getCenterPosition().y-size.y/2);
+                font.dispose();
+                col.dispose();
+
                 for (Food f : food) {
                     if (f.isVisible()) {
                         e.gc.setBackground(display.getSystemColor(f.getColor()));
@@ -205,5 +215,7 @@ Ball ball = new Ball();
         }
     }
 
-
+public void setBallName(String name){
+    ball.setName(name);
+}
 }
