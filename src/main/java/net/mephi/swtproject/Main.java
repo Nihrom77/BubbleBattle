@@ -12,13 +12,15 @@ import org.eclipse.swt.widgets.Shell;
  */
 public class Main {
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         Main main = new Main();
         main.start();
     }
-    private final int WIDTH = 300;
-    private final int HEIGHT = 300;
-    private void start(){
+
+    private final int WIDTH = 600;
+    private final int HEIGHT = 600;
+
+    private void start() {
         Display display = new Display();
         Shell shell = new Shell(display, SWT.SHELL_TRIM | SWT.CENTER);
 
