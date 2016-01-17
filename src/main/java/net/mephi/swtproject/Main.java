@@ -40,17 +40,21 @@ public class Main {
 
         Board board = new Board(shell);
 
-        shell.setText("Bubble battle");
-        int borW = shell.getSize().x - shell.getClientArea().width;
-        int borH = shell.getSize().y - shell.getClientArea().height;
-        shell.setSize(WIDTH + borW, HEIGHT + borH);
-        shell.open();
 
         InputDialog dlg = new InputDialog(shell);
         String input = dlg.open();
         if (input != null) {
             board.setBallName(input);
         }
+
+
+        shell.setText("Bubble battle");
+        int borW = shell.getSize().x - shell.getClientArea().width;
+        int borH = shell.getSize().y - shell.getClientArea().height;
+        shell.setSize(WIDTH + borW, HEIGHT + borH);
+        shell.open();
+
+
 
         while (!shell.isDisposed()) {
             if (!display.readAndDispatch()) {

@@ -2,6 +2,8 @@ package net.mephi.swtproject.components;
 
 import org.eclipse.swt.graphics.Point;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 /**
  * Created by Acer on 16.01.2016.
  */
@@ -12,14 +14,15 @@ public class Ball {
     int speed;
 
     String name = "";
-
-
+    boolean visible = true;
+    int color;
 
     Ball(){
         center = new Point(0,0);
         leftTop = new Point(center.x-radius,center.y-radius);
         radius = 25;
         speed = 15;
+        color = ThreadLocalRandom.current().nextInt(1, 16 + 1);
         this.name = "Anonym";
 
     }
@@ -31,6 +34,25 @@ public class Ball {
     public Point getLeftTopPosition(){
         return leftTop;
     }
+
+    public int getRadius(){
+        return radius;
+    }
+
+    public int getColor(){
+        return color;
+    }
+
+    public void setRadius(int radius){
+        this.radius = radius;
+    }
+    public void setVisible(boolean visible){
+        this.visible = visible;
+    }
+    public boolean isVisible(){
+        return visible;
+    }
+
 
     public void moveTo(Point newPosition){
         center = newPosition;
@@ -64,6 +86,12 @@ public class Ball {
         double curLen = Math.sqrt(Math.pow(food.getCenter().x - center.x, 2) + Math.pow(food.getCenter().y - center.y, 2));
         return curLen<minCollisionLength;
     }
+    public boolean checkCollisionTo(Ball enemyBall){
+        double minCollisionLength = radius/2+radius;
+        double curLen = Math.sqrt(Math.pow(enemyBall.getCenterPosition().x - center.x, 2) + Math.pow(enemyBall.getCenterPosition().y - center.y, 2));
+        return curLen<minCollisionLength;
+    }
+
     public void setName(String newName){
         name = newName;
     }

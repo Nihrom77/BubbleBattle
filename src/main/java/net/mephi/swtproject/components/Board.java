@@ -21,8 +21,8 @@ public class Board extends Canvas {
     private int foodSize = 10;
     private int currentFoodAmount = maxFoodAmount;
 
-Ball ball = new Ball();
-
+    Ball ball = new Ball();//твой вправляемый шарик
+    Ball[] enemies = new Ball[1];
 
     private boolean inGame = true;
 
@@ -62,6 +62,7 @@ Ball ball = new Ball();
 
 
         locateFood();
+        locateEnemies();
 
         runnable = new Runnable() {
             @Override
@@ -121,10 +122,10 @@ Ball ball = new Ball();
             Control c = Display.getCurrent().getFocusControl();
             if (c != null) {
 
-
+                //подвинуть шарик к курсору
                 Point relativeCursorLocation = c.toControl(cursorLocation);
                 ball.moveToCursor(relativeCursorLocation);
-                e.gc.setBackground(display.getSystemColor(SWT.COLOR_CYAN));
+                e.gc.setBackground(display.getSystemColor(ball.getColor()));
                 e.gc.fillOval(ball.leftTop.x, ball.leftTop.y, ball.radius*2, ball.radius*2);
 
                 //нарисовать имя
@@ -143,6 +144,14 @@ Ball ball = new Ball();
                         e.gc.fillOval(f.getLeftTop().x, f.getLeftTop().y, Food.FOOD_SIZE_RADIUS*2, Food.FOOD_SIZE_RADIUS*2);
                     }
                 }
+for(Ball enemy: enemies){
+    if(enemy.isVisible()) {
+        enemy.moveToCursor(new Point(ThreadLocalRandom.current().nextInt(0, WIDTH + 1), ThreadLocalRandom.current().nextInt(0, HEIGHT + 1)));
+        e.gc.setBackground(display.getSystemColor(enemy.getColor()));
+        e.gc.fillOval(enemy.leftTop.x, enemy.leftTop.y, enemy.radius * 2, enemy.radius * 2);
+    }
+}
+
             }
         }
     }
@@ -198,6 +207,33 @@ Ball ball = new Ball();
                     ball.increaseMass();
                     System.out.println("eat!!!");
                 }
+
+                for(Ball enemy:enemies){
+                    if (enemy.isVisible() && enemy.checkCollisionTo(f)) {
+                        f.setVisible(false);
+                        currentFoodAmount--;
+                        if(currentFoodAmount==0){
+                            inGame=false;
+                        }
+                        enemy.descreaseSpeed();
+                        enemy.increaseMass();
+                        System.out.println("enemy eat!!!");
+                    }
+
+                    if(enemy.isVisible() && ball.checkCollisionTo(enemy)){
+                        if( enemy.getRadius()>ball.getRadius()){
+                            ball.setRadius(0);
+
+                            inGame=false;
+                        }else{
+                            ball.descreaseSpeed();
+                            ball.increaseMass();
+                            enemy.setRadius(0);
+                            enemy.setVisible(false);
+                        }
+                    }
+                }
+
             }
         }
 
@@ -212,6 +248,15 @@ Ball ball = new Ball();
             f.setPosition(new Point(ThreadLocalRandom.current().nextInt(0, WIDTH + 1),ThreadLocalRandom.current().nextInt(0, HEIGHT + 1)));
             f.setVisible(true);
             food[i] = f;
+        }
+    }
+
+    public void locateEnemies(){
+        for(int i = 0; i< enemies.length; i++){
+            Ball enemy = new Ball();
+            enemy.setName("враг");
+            enemy.moveTo(new Point(ThreadLocalRandom.current().nextInt(0, WIDTH + 1),ThreadLocalRandom.current().nextInt(0, HEIGHT + 1)));
+            enemies[i] = enemy;
         }
     }
 
