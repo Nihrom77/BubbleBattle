@@ -1,0 +1,1 @@
+java -cp bubbleBattle-1.0-SNAPSHOT-jar-with-dependencies net.mephi.server.MultipleSocketServer
