@@ -10,11 +10,13 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
 
 import java.io.IOException;
@@ -40,27 +42,41 @@ public class ClientLauncher {
     private void start() {
         Display display = new Display();
         Shell shell = new Shell(display, SWT.SHELL_TRIM | SWT.CENTER);
+        shell.setText("Bubble battle");
+        shell.setSize(Board.WIDTH , Board.HEIGHT );
 
+        Monitor primary = display.getPrimaryMonitor();
+        Rectangle bounds = primary.getBounds();
+        Rectangle rect = shell.getBounds();
+
+        int x = bounds.x + (bounds.width - rect.width) / 2;
+        int y = bounds.y + (bounds.height - rect.height) / 2;
+
+        shell.setLocation(x, y);
         createTopMenu(shell);
         FillLayout layout = new FillLayout();
         shell.setLayout(layout);
-        Board board = new Board(shell);
 
+
+
+
+        Board board = new Board(shell);
+        shell.open();
         InputDialog dlg = new InputDialog(shell);
+
         String input = dlg.open();
         if (input == null) {
             input = "";
+        }else{
+            input = input.substring(0,Math.min(5,input.length()));
         }
         Client client = new Client();
         Ball ball = new Ball(input);
         client.setBall(ball);
 
 
-        shell.setText("Bubble battle");
-        int borW = shell.getSize().x - shell.getClientArea().width;
-        int borH = shell.getSize().y - shell.getClientArea().height;
-        shell.setSize(Board.WIDTH + borW, Board.HEIGHT + borH);
-        shell.open();
+
+
 
 
         connectToServer(client);

@@ -19,8 +19,8 @@ import java.util.Comparator;
 
 public class Board extends Canvas {
 
-    public static final int WIDTH = Toolkit.getDefaultToolkit().getScreenSize().width;;
-    public static final int HEIGHT =  Toolkit.getDefaultToolkit().getScreenSize().height;
+    public static final int WIDTH = (int)(Toolkit.getDefaultToolkit().getScreenSize().width*0.9);
+    public static final int HEIGHT =  (int)(Toolkit.getDefaultToolkit().getScreenSize().height*0.9);
     public static final int FOOD_SIZE_RADIUS = 10;
     public static final int MAX_FOOD_AMOUNT = WIDTH * HEIGHT / FOOD_SIZE_RADIUS / 8000;
     private Logger log = Logger.getLogger(Board.class);
@@ -38,7 +38,6 @@ public class Board extends Canvas {
 
         this.shell = shell;
         display = shell.getDisplay();
-
         addListener(SWT.Paint, event -> doPainting(event));//Слушатель события redraw()
         Color col = new Color(shell.getDisplay(), 255, 255, 255);
 
@@ -199,7 +198,7 @@ private void drawTopScores(Event e,Clients clients){
 Collections.sort(clients.getClientBalls(), new Comparator<Ball>() {
     @Override
     public int compare(Ball o1, Ball o2) {
-        return (int)Math.signum(o1.getRadius()-o2.getRadius()) ;
+        return (int)Math.signum(o2.getRadius()-o1.getRadius()) ;
     }
 });
     for(int i=0;i< Math.min(5,clients.getClientBalls().size());i++) {

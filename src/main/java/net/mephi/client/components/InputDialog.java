@@ -92,6 +92,7 @@ public class InputDialog extends Dialog {
             public void widgetSelected(SelectionEvent event) {
                 input = null;
                 shell.close();
+                System.exit(0);
             }
         });
 

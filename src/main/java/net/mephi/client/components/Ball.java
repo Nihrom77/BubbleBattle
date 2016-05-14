@@ -86,19 +86,55 @@ public class Ball implements Serializable {
     }
 
 
-
+    /**
+     * Рассчитать следующюю позицию центра шарика по полученным координатам мыши.
+     * @param relativeCursorLocation
+     * @return
+     */
     public Point countNewCenterPosition(Point relativeCursorLocation){
+//        if(getCenterDistance(this.getCenterPosition(),relativeCursorLocation) <= radius*0.05){
+//            return getCenterPosition();
+//        }
         double L2 = Math.sqrt(Math.pow(relativeCursorLocation.x - center.x, 2) + Math.pow(relativeCursorLocation.y - center.y, 2)) - getSpeed();
         double L1 = getSpeed();
          int x = (int) ((relativeCursorLocation.x + ((L2 / L1) * center.x)) / (1 + L2 / L1));
         int y = (int) ((relativeCursorLocation.y + ((L2 / L1) * center.y)) / (1 + L2 / L1));
+
+        //Если шаг перескакивает курсор
+        if(relativeCursorLocation.x > center.x){
+            if(x>relativeCursorLocation.x){
+                return center;
+            }
+        }else{
+            if(x<relativeCursorLocation.x){
+                return center;
+            }
+        }
+
+        if(relativeCursorLocation.y<center.y){
+            if(y<relativeCursorLocation.y){
+                return center;
+            }
+        }else{
+            if(y>relativeCursorLocation.y){
+                return center;
+            }
+        }
+
         return new Point(x,y);
     }
 
+    /**
+     * Проверка столкновения
+     * @param enemyBall
+     * @return true, если enemyBall умер
+     */
     public boolean checkCollisionTo(Ball enemyBall) {
-        double minCollisionLength = radius / 2 + radius;
-        double curLen = Math.sqrt(Math.pow(enemyBall.getCenterPosition().x - center.x, 2) + Math.pow(enemyBall.getCenterPosition().y - center.y, 2));
-        return curLen < minCollisionLength;
+        double minCollisionLength = (radius-radius*0.05) + (enemyBall.getRadius() - enemyBall.getRadius()*0.05);
+        if( getCenterDistance(this.getCenterPosition(),enemyBall.getCenterPosition()) < minCollisionLength){
+            return enemyBall.getRadius()<this.getRadius();
+        }
+        return false;
     }
 
     public void setName(String newName) {
@@ -109,11 +145,23 @@ public class Ball implements Serializable {
         return name;
     }
 
-
+    /**
+     * Выставить случайную позицию на поле.
+     * Отступ от границ - 5%
+     */
     public void setRandomPosition() {
         center = new Point(ThreadLocalRandom.current().nextInt(0, (int)(Board.WIDTH-Board.WIDTH*0.05 )+ 1), ThreadLocalRandom.current().nextInt(0, (int)(Board.HEIGHT-Board.HEIGHT*0.05) + 1));
     }
 
+    /**
+     * Расстояние между центрами
+     * @param center1
+     * @param center2
+     * @return
+     */
+    public double getCenterDistance(Point center1, Point center2){
+        return Math.sqrt(Math.pow(center2.x - center1.x,2) + Math.pow(center2.y - center1.y,2));
+    }
 
     @Override
     public String toString(){

@@ -181,9 +181,9 @@ public class MultipleSocketServer {
         //пересечение клиентов друг с другом
         for (Client client1 : getClientsList()) {
             for (Client client2 : getClientsList()) {
-                if (client1.getBall().checkCollisionTo(client2.getBall()) && !client1.getUUID().equals(client2.getUUID())) {
+                if (client1.getBall().isVisible() && client1.getBall().checkCollisionTo(client2.getBall()) && !client1.getUUID().equals(client2.getUUID())) {
                     client2.getBall().setRadius(Ball.END_GAME_RADIUS);
-
+                    client2.getBall().setVisible(false);
                     client1.getBall().increaseMass(client2.getBall());
                     log.debug("Client "+client1+" ate Client "+client2);
                 }
