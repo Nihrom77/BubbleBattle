@@ -72,8 +72,8 @@ public class Ball implements Serializable {
 
 
     public void increaseMass(Ball b) {
-        if(radius + b.getRadius()/2 <=MAX_RADIUS) {
-            radius += b.getRadius() / 2;
+        if (radius + b.getRadius() / 4 <= MAX_RADIUS) {
+            radius += b.getRadius() / 4;
         }
     }
 
@@ -92,9 +92,6 @@ public class Ball implements Serializable {
      * @return
      */
     public Point countNewCenterPosition(Point relativeCursorLocation){
-//        if(getCenterDistance(this.getCenterPosition(),relativeCursorLocation) <= radius*0.05){
-//            return getCenterPosition();
-//        }
         double L2 = Math.sqrt(Math.pow(relativeCursorLocation.x - center.x, 2) + Math.pow(relativeCursorLocation.y - center.y, 2)) - getSpeed();
         double L1 = getSpeed();
          int x = (int) ((relativeCursorLocation.x + ((L2 / L1) * center.x)) / (1 + L2 / L1));
