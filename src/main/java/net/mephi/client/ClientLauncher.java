@@ -64,14 +64,14 @@ public class ClientLauncher {
         shell.open();
         InputDialog dlg = new InputDialog(shell);
 
-        String input = dlg.open();
-        if (input == null) {
-            input = "";
+        String inputName = dlg.open();
+        if (inputName == null) {
+            inputName = "";
         }else{
-            input = input.substring(0,Math.min(5,input.length()));
+            inputName = inputName.substring(0, Math.min(5, inputName.length()));
         }
         Client client = new Client();
-        Ball ball = new Ball(input);
+        Ball ball = new Ball(inputName, Ball.START_CLIENT_RADIUS);
         client.setBall(ball);
 
 

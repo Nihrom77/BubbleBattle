@@ -7,14 +7,11 @@ import org.apache.log4j.Logger;
 import org.eclipse.swt.graphics.Point;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
 
 public class MultipleSocketServer {
 
@@ -44,7 +41,7 @@ public class MultipleSocketServer {
     public void locateFood() {
         log.debug("MAX_FOOD_AMOUNT="+Board.MAX_FOOD_AMOUNT);
         for (int i = 0; i < Board.MAX_FOOD_AMOUNT; i++) {
-            Ball f = new Ball(Ball.FOOD_RADIUS);
+            Ball f = new Ball(Ball.FOOD_NAME, Ball.FOOD_RADIUS);
             Random r = new Random();
             java.awt.Color color = java.awt.Color.getHSBColor(r.nextFloat(), r.nextFloat(), r.nextFloat());
             f.setColor(color);
@@ -108,6 +105,13 @@ public class MultipleSocketServer {
                         e.printStackTrace();
                         closeClient(client);
                         continue;
+                    }
+                }
+
+                //Удаление съеденных клиентов
+                for (Client client : getClientsList()) {
+                    if (!client.getBall().isVisible()) {
+                        closeClient(client);
                     }
                 }
 

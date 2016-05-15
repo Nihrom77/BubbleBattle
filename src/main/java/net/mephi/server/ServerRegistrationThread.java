@@ -33,7 +33,7 @@ public class ServerRegistrationThread implements Runnable {
     @Override
     public void run() {
         try {
-            ServerSocket socket1 = new ServerSocket(server.getPort());
+            ServerSocket socket1 = new ServerSocket(MultipleSocketServer.getPort());
             while (true) {
 
 
@@ -45,9 +45,8 @@ public class ServerRegistrationThread implements Runnable {
 
                 //читаем имя и цвет
                 String returnStr = (String) ois.readObject();
-                Ball b = new Ball(Ball.START_CLIENT_RADIUS);
+                Ball b = new Ball(parseName(returnStr), Ball.START_CLIENT_RADIUS);
                 b.setRandomPosition();
-                b.setName(getName(returnStr));
                 b.setColor(getColor(returnStr));
 
                 Client c = new Client(connection);
@@ -85,7 +84,7 @@ public class ServerRegistrationThread implements Runnable {
      * @param input
      * @return
      */
-    private static String getName(String input) {
+    private static String parseName(String input) {
         String temp = input.substring(0, input.lastIndexOf("_"));
         temp = temp.substring(0, temp.lastIndexOf("_"));
         temp = temp.substring(0, temp.lastIndexOf("_"));
@@ -93,7 +92,7 @@ public class ServerRegistrationThread implements Runnable {
     }
 
     private Color getColor(String input) {
-        String[] col = input.substring(getName(input).length() + 1).split("_");
+        String[] col = input.substring(parseName(input).length() + 1).split("_");
         return new Color(Integer.parseInt(col[0]), Integer.parseInt(col[1]), Integer.parseInt(col[2]));
     }
 }

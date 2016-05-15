@@ -13,14 +13,13 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Shell;
 
-import java.awt.*;
 import java.util.Collections;
 import java.util.Comparator;
 
 public class Board extends Canvas {
 
-    public static final int WIDTH = (int)(Toolkit.getDefaultToolkit().getScreenSize().width*0.9);
-    public static final int HEIGHT =  (int)(Toolkit.getDefaultToolkit().getScreenSize().height*0.9);
+    public static final int WIDTH = 1100;
+    public static final int HEIGHT = 600;
     public static final int FOOD_SIZE_RADIUS = 10;
     public static final int MAX_FOOD_AMOUNT = WIDTH * HEIGHT / FOOD_SIZE_RADIUS / 8000;
     private Logger log = Logger.getLogger(Board.class);

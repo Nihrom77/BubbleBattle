@@ -11,10 +11,11 @@ import java.util.concurrent.ThreadLocalRandom;
  * Created by Acer on 16.01.2016.
  */
 public class Ball implements Serializable {
-    public static final int START_CLIENT_RADIUS = 25;
-    public static final int FOOD_RADIUS = 10;
+    public static final int START_CLIENT_RADIUS = (int) (Board.HEIGHT * 0.05);
+    public static final int FOOD_RADIUS = START_CLIENT_RADIUS / 4;
     public static final int END_GAME_RADIUS = 0;
     public static final int MAX_RADIUS = Board.HEIGHT/3;
+    public static final String FOOD_NAME = "";
     private Point center = new Point(0, 0);
     private int radius;
 
@@ -22,17 +23,11 @@ public class Ball implements Serializable {
     private boolean visible = true;
     private Color color;
 
-    public Ball(int radius) {
+
+    public Ball(String name, int radius) {
         this.radius = radius;
-        Random r = new Random();
-        color = java.awt.Color.getHSBColor(r.nextFloat(), r.nextFloat(), r.nextFloat());
-        this.name = "Anonym";
-
-    }
-
-    public Ball(String name) {
-        this(Ball.START_CLIENT_RADIUS);
         this.name = name;
+        setRandomColor();
     }
 
     public Point getCenterPosition() {
@@ -148,6 +143,11 @@ public class Ball implements Serializable {
      */
     public void setRandomPosition() {
         center = new Point(ThreadLocalRandom.current().nextInt(0, (int)(Board.WIDTH-Board.WIDTH*0.05 )+ 1), ThreadLocalRandom.current().nextInt(0, (int)(Board.HEIGHT-Board.HEIGHT*0.05) + 1));
+    }
+
+    public void setRandomColor() {
+        Random r = new Random();
+        color = java.awt.Color.getHSBColor(r.nextFloat(), r.nextFloat(), r.nextFloat());
     }
 
     /**
