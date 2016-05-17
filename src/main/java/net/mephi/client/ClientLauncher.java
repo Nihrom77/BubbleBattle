@@ -75,6 +75,7 @@ public class ClientLauncher {
             inputName = inputName.substring(0, Math.min(5, inputName.length()));
         }
         Client client = new Client();
+        client.setClient(client);
         Ball ball = new Ball(inputName, Ball.START_CLIENT_RADIUS);
         client.setBall(ball);
         client.setBoard(board);

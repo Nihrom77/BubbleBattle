@@ -20,7 +20,7 @@ public class Client {
     private String clientName = "anon";
     private Socket socket = null;
 
-
+    private Client thisClient = null;
     private DataOutputStream oos;
     private BufferedReader ois;
     private Ball ball = null;
@@ -35,6 +35,10 @@ public class Client {
 
     }
 
+    public void setClient(Client c) {
+        this.thisClient = c;
+
+    }
     public Client(Socket s) {
         this.socket = s;
     }
@@ -113,7 +117,7 @@ public class Client {
                             if (o.get("type").equals("refresh")) {
                                 //перерисовать доску
 
-                                board.refreshBoard(o, getUUID(), ball.getLinesShift());
+                                board.refreshBoard(o, getUUID(), ball.getLinesShift(), thisClient);
                             }
                         } catch (ParseException e) {
                             log.error(e);
@@ -124,6 +128,13 @@ public class Client {
                         }
 
                     }
+
+                    JSONObject obj = new JSONObject();
+                    obj.put("type", "shutdown");
+                    obj.put("uuid", getUUID());
+                    log.debug("send " + obj.toString());
+                    outToServer.write(obj.toString().getBytes());
+
                     oos.close();
                     ois.close();
                     getSocket().close();

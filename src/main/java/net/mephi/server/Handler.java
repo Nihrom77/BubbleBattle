@@ -113,8 +113,15 @@ public class Handler implements Runnable {
 
                 log.debug("send " + resp);
                 _writeBuf = ByteBuffer.wrap(resp.getBytes());
+            } else if (o.get("type").equals("shutdown")) {
+
+                col.getClientsList4Delete().add((String) o.get("uuid"));
+                _selectionKey.cancel();
+                _selectionKey.channel().close();
             }
         } catch (ParseException p) {
+        } catch (IOException e) {
+            log.error(e);
         }
 
 
@@ -208,7 +215,7 @@ public class Handler implements Runnable {
 
         JSONArray arrayClient = new JSONArray();
         for (Client c : list) {
-            if (c.getBall().isVisible() && responceTo.getBall().isBallInCurrentField(c.getBall())) {
+            if (responceTo.getBall().isBallInCurrentField(c.getBall())) {
                 JSONObject balls = new JSONObject();
                 balls.put("x", c.getBall().getCenterGlobalPosition().x - responceTo.getBall()
                     .getLeftTopFieldPosition().x);

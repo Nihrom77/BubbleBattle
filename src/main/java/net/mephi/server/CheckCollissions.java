@@ -20,7 +20,7 @@ public class CheckCollissions implements Runnable {
 
 
     private List<Client> clientsList = new ArrayList<>();
-    private List<Client> clientList4Delete = new ArrayList<>();
+    private List<String> clientList4Delete = new ArrayList<>();
     private Map<String, Point> clients4Update = new HashMap<>();
     private List<Client> clientList4Register = new ArrayList<>();
     private Ball[] foods = new Ball[Board.MAX_FOOD_AMOUNT];
@@ -68,6 +68,9 @@ public class CheckCollissions implements Runnable {
 
     }
 
+    public List<String> getClientsList4Delete() {
+        return clientList4Delete;
+    }
     public List<Client> getClientsList() {
         List<Client> l = new ArrayList<>(clientsList);
         return l;

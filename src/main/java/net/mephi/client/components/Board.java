@@ -1,5 +1,6 @@
 package net.mephi.client.components;
 
+import net.mephi.server.Client;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
@@ -37,6 +38,7 @@ public class Board extends Canvas {
     private JSONArray clientsArray = new JSONArray();
     private JSONArray foodArray = new JSONArray();
     private Point linesShift = new Point(0, 0);
+    private Client client = null;
 
     private final Object lock = new Object();
 
@@ -89,8 +91,9 @@ public class Board extends Canvas {
      *
      * @param uuid
      */
-    public void refreshBoard(JSONObject clients, String uuid, Point linesShift) {
+    public void refreshBoard(JSONObject clients, String uuid, Point linesShift, Client client) {
         this.clients = clients;
+        this.client = client;
         //TODO: работает так себе
         //        if (this.linesShift.x == linesShift.x || this.linesShift.y == linesShift.y) {
         //        } else {
@@ -154,6 +157,7 @@ public class Board extends Canvas {
             if (inGame) {
                 drawObjects(e);
             } else {
+                client.endGame();
                 gameOver(e);
             }
         }
