@@ -199,17 +199,17 @@ public class Ball implements Serializable {
         int yGlobal = userField.y + (y - getCenterLocalPosition().y);
 
         //Проверка выхода за глобальные границы
-        if (xGlobal + userField.width > Board.WIDTH) {
-            xGlobal = Board.WIDTH - userField.width;
+        if (xGlobal + userField.width / 2 > Board.WIDTH) {//правый
+            xGlobal = Board.WIDTH - userField.width / 2;
         }
-        if (yGlobal + userField.height > Board.HEIGHT) {
-            yGlobal = Board.HEIGHT - userField.height;
+        if (yGlobal + userField.height / 2 > Board.HEIGHT) {//низ
+            yGlobal = Board.HEIGHT - userField.height / 2;
         }
-        if (xGlobal < 0) {
-            xGlobal = 0;
+        if (xGlobal + userField.width / 2 < 0) {//лево
+            xGlobal = -userField.width / 2;
         }
-        if (yGlobal < 0) {
-            yGlobal = 0;
+        if (yGlobal + userField.height / 2 < 0) {//вверх
+            yGlobal = -userField.height / 2;
         }
 
 
