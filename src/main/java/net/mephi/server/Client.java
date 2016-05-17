@@ -1,16 +1,16 @@
 package net.mephi.server;
 
-import net.mephi.client.Clients;
 import net.mephi.client.components.Ball;
 import net.mephi.client.components.Board;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.graphics.Point;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.net.Socket;
 
 /**
@@ -21,8 +21,8 @@ public class Client {
     private Socket socket = null;
 
 
-    private ObjectOutputStream oos;
-    private ObjectInputStream ois;
+    private DataOutputStream oos;
+    private BufferedReader ois;
     private Ball ball = null;
     private String uuid;
     private Board board;
@@ -82,68 +82,81 @@ public class Client {
     public void startGame() {
         //Запуск потока для обмена сообщениями с сервером
         Thread thread1 = new Thread(new Runnable() {
-            @Override
-            public void run() {
+            @Override public void run() {
 
                 try {
-                    ObjectInputStream ois = getOis();
-                    ObjectOutputStream oos = getOos();
-
+                    DataOutputStream outToServer = getOos();
+                    BufferedReader inFromServer = getOis();
+                    JSONParser parser = new JSONParser();
                     while (isActive) {
-                        String read = (String) ois.readObject();
-                        if (read.equals(Client.DATA_REQUEST)) {
-
-                            //Отправить свой id и координаты мыши
 
 
-                            Point p = board.getCursorLocation();
-                            log.debug("send "+this + " / " + p.x + "_" + p.y);
-                            oos.writeObject(getUUID() + "/" + p.x + "_" + p.y);
-                            oos.flush();
-                            oos.reset();
+                        //Отправить свой id и новые координаты поля, относительно глобального
+                        Point p = board.getCursorLocation();
+                        ball.setCursorLocation(p);
+                        ball.countNewFieldPosition(p);
+
+                        JSONObject obj = new JSONObject();
+                        obj.put("type", "cursor");
+                        obj.put("uuid", getUUID());
+                        obj.put("x", ball.getUserField().x);
+                        obj.put("y", ball.getUserField().y);
+
+                        log.debug("send " + obj.toString());
+                        outToServer.write(obj.toString().getBytes());
+
+                        try {
                             //ожидать обработанных данных
+                            String res = inFromServer.readLine();
+                            JSONObject o = (JSONObject) parser.parse(res);
+                            log.debug("receive " + o.toString());
+                            if (o.get("type").equals("refresh")) {
+                                //перерисовать доску
 
-                            Clients clients = (Clients) ois.readObject();
-
-                            //перерисовать доску
-                            log.debug("Refresh board"+clients.getClientBalls());
-                            board.refreshBoard(clients, getUUID());
+                                board.refreshBoard(o, getUUID(), ball.getLinesShift());
+                            }
+                        } catch (ParseException e) {
+                            log.error(e);
                         }
+                        try {
+                            Thread.sleep(20);
+                        } catch (InterruptedException e) {
+                        }
+
                     }
                     oos.close();
                     ois.close();
                     getSocket().close();
 
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
 
         });
+        thread1.setName("Client main thread");
         thread1.start();
 
     }
-    public ObjectOutputStream getOos() {
+
+    public DataOutputStream getOos() {
         return oos;
     }
 
-    public void setOos(ObjectOutputStream oos) {
+    public void setOos(DataOutputStream oos) {
         this.oos = oos;
     }
 
-    public ObjectInputStream getOis() {
+    public BufferedReader getOis() {
         return ois;
     }
 
-    public void setOis(ObjectInputStream ois) {
+    public void setOis(BufferedReader ois) {
         this.ois = ois;
     }
 
-    @Override
-    public String toString() {
-        return "<"+getUUID() + " / " + getBall().getName()+">";
+    @Override public String toString() {
+        return "<" + getUUID() + " / " + getBall().getName() + ">";
     }
 
 }
