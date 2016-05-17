@@ -101,12 +101,14 @@ public class CheckCollissions implements Runnable {
         //пересечение клиентов друг с другом
         for (Client client1 : clientsList) {
             for (Client client2 : clientsList) {
-                if (client1.getBall().isVisible() && client1.getBall()
-                    .checkCollisionTo(client2.getBall()) && !client1.getUUID()
+                if (client1.getBall().isVisible() && client2.getBall().isVisible() && client1
+                    .getBall().checkCollisionTo(client2.getBall()) && !client1.getUUID()
                     .equals(client2.getUUID())) {
+
+                    client1.getBall().increaseMass(client2.getBall());
                     client2.getBall().setRadius(Ball.END_GAME_RADIUS);
                     client2.getBall().setVisible(false);
-                    client1.getBall().increaseMass(client2.getBall());
+
                     log.debug("Client " + client1 + " ate Client " + client2);
                 }
             }

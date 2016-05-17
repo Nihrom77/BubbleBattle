@@ -23,8 +23,8 @@ public class Board extends Canvas {
     public static final int HEIGHT = 10000;
 
 
-    public static final int FOOD_SIZE_RADIUS = 10;
-    public static final int MAX_FOOD_AMOUNT = WIDTH * HEIGHT / FOOD_SIZE_RADIUS / 8000;
+    public static final int FOOD_SIZE_RADIUS = (int) (WIDTH * 0.001 + 5);
+    public static final int MAX_FOOD_AMOUNT = (int) (WIDTH * HEIGHT / FOOD_SIZE_RADIUS / 8000);
     private Logger log = Logger.getLogger(Board.class);
 
 
@@ -92,11 +92,11 @@ public class Board extends Canvas {
     public void refreshBoard(JSONObject clients, String uuid, Point linesShift) {
         this.clients = clients;
         //TODO: работает так себе
-        if (this.linesShift.x == linesShift.x || this.linesShift.y == linesShift.y) {
-        } else {
+        //        if (this.linesShift.x == linesShift.x || this.linesShift.y == linesShift.y) {
+        //        } else {
             this.linesShift.x = (this.linesShift.x + linesShift.x) % Ball.LINE_SPACE_SIZE;
             this.linesShift.y = (this.linesShift.y + linesShift.y) % Ball.LINE_SPACE_SIZE;
-        }
+        //        }
         this.uuid = uuid;
         clientsArray = (JSONArray) clients.get("clients");
         foodArray = (JSONArray) clients.get("food");

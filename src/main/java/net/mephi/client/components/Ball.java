@@ -124,9 +124,13 @@ public class Ball implements Serializable {
     }
 
     public void increaseMass(Ball b) {
-        if (radius + b.getRadius() / 4 <= MAX_RADIUS) {
-            radius += b.getRadius() / 4;
+        int r = (int) (Math.sqrt(radius * radius + (b.getRadius() * b.getRadius())));
+        if (r > MAX_RADIUS) {
+            radius = MAX_RADIUS;
+        } else {
+            radius = r;
         }
+
     }
 
     public int getSpeed() {
