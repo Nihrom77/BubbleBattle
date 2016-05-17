@@ -19,8 +19,8 @@ import java.util.Comparator;
 
 public class Board extends Canvas {
 
-    public static final int WIDTH = 10000;
-    public static final int HEIGHT = 10000;
+    public static final int WIDTH = 3000;
+    public static final int HEIGHT = 3000;
 
 
     public static final int FOOD_SIZE_RADIUS = (int) (WIDTH * 0.001 + 5);
