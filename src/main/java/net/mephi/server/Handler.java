@@ -14,6 +14,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -173,6 +175,7 @@ public class Handler implements Runnable {
 
     /**
      * Пересылаем еду и клиентов, в пределах видимости клиента
+     * И Top5 игроков
      *
      * @param uuid id клиента, которому будут отправлены данные
      * @return Объект пересылки
@@ -233,6 +236,21 @@ public class Handler implements Runnable {
             }
         }
         response.put("clients", arrayClient);
+
+        //Top5
+        JSONArray arrayClientTop5 = new JSONArray();
+        Collections.sort(list, new Comparator<Client>() {
+            @Override public int compare(Client o1, Client o2) {
+                return (int) Math.signum(o1.getBall().getRadius() - o2.getBall().getRadius());
+            }
+        });
+        for (int i = 0; i < Math.min(5, list.size()); i++) {
+            JSONObject ball = new JSONObject();
+            ball.put("name", list.get(i).getBall().getName());
+            ball.put("score", list.get(i).getBall().getRadius());
+            arrayClientTop5.add(ball);
+        }
+        response.put("top5", arrayClientTop5);
 
         return response;
     }

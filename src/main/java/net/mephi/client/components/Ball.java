@@ -170,8 +170,6 @@ public class Ball implements Serializable {
 
 
 
-
-
         //Если шаг перескакивает курсор
         if (relativeCursorLocation.x > getCenterLocalPosition().x) {
             if (x > relativeCursorLocation.x) {

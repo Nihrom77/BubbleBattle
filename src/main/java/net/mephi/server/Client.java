@@ -39,6 +39,7 @@ public class Client {
         this.thisClient = c;
 
     }
+
     public Client(Socket s) {
         this.socket = s;
     }

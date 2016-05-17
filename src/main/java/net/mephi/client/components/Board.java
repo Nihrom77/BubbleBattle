@@ -1,6 +1,7 @@
 package net.mephi.client.components;
 
 import net.mephi.server.Client;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
@@ -14,9 +15,6 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Shell;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-
-import java.util.Collections;
-import java.util.Comparator;
 
 public class Board extends Canvas {
 
@@ -37,6 +35,7 @@ public class Board extends Canvas {
     private JSONObject clients = new JSONObject();
     private JSONArray clientsArray = new JSONArray();
     private JSONArray foodArray = new JSONArray();
+    private JSONArray clientsTop5 = new JSONArray();
     private Point linesShift = new Point(0, 0);
     private Client client = null;
 
@@ -97,12 +96,13 @@ public class Board extends Canvas {
         //TODO: работает так себе
         //        if (this.linesShift.x == linesShift.x || this.linesShift.y == linesShift.y) {
         //        } else {
-            this.linesShift.x = (this.linesShift.x + linesShift.x) % Ball.LINE_SPACE_SIZE;
-            this.linesShift.y = (this.linesShift.y + linesShift.y) % Ball.LINE_SPACE_SIZE;
+        this.linesShift.x = (this.linesShift.x + linesShift.x) % Ball.LINE_SPACE_SIZE;
+        this.linesShift.y = (this.linesShift.y + linesShift.y) % Ball.LINE_SPACE_SIZE;
         //        }
         this.uuid = uuid;
         clientsArray = (JSONArray) clients.get("clients");
         foodArray = (JSONArray) clients.get("food");
+        this.clientsTop5 = (JSONArray) clients.get("top5");
         if (clientsArray.size() > 0) {
             Display.getDefault().asyncExec(new Runnable() {
                 public void run() {
@@ -180,30 +180,24 @@ public class Board extends Canvas {
 
                 //нарисовать имя
                 Font font = new Font(e.display, "Helvetica", radius / 3, SWT.NORMAL);
-                //                Font font1 = new Font(e.display, "Helvetica", 10, SWT.NORMAL);
                 Color col = new Color(e.display, 0, 0, 0);
                 gc.setFont(font);
                 gc.setForeground(col);
                 Point size = gc.textExtent((String) ball.get("name"));
                 gc.drawText((String) ball.get("name"), center.x - size.x / 2,
                     center.y - size.y / 2);
-                //                gc.setFont(font1);
-                //                gc.drawText(clients.getClientBalls().get(i).getCenterLocalPosition()+"   "+clients.getClientBalls().get(i).getRadius()+"   "+clients.getClientBalls().get(i).getSpeed(),20,50);
                 font.dispose();
-                //                font1.dispose();
                 col.dispose();
             }
 
 
             for (int i = 0; i < foodArray.size(); i++) {
                 JSONObject food = (JSONObject) foodArray.get(i);
-                //                if (f.isVisible()) {
                 e.gc.setBackground(getSWTColorFromJSON((JSONObject) food.get("color"), display));
                 Point center =
                     new Point(((Long) food.get("x")).intValue(), ((Long) food.get("y")).intValue());
                 Point leftTop = Ball.getLeftTopPosition(center, Ball.FOOD_RADIUS);
                 e.gc.fillOval(leftTop.x, leftTop.y, Ball.FOOD_RADIUS * 2, Ball.FOOD_RADIUS * 2);
-                //                }
             }
 
         }
@@ -243,21 +237,18 @@ public class Board extends Canvas {
         gc.drawText("TOP 5:", Ball.WIDTH - 100, 20);
 
 
-        Collections.sort(clientsArray, new Comparator<Object>() {
-            @Override public int compare(Object o1, Object o2) {
-                JSONObject obj1 = (JSONObject) o1;
-                JSONObject obj2 = (JSONObject) o2;
-                return (int) Math.signum(
-                    ((Long) obj1.get("radius")).intValue() - ((Long) obj2.get("radius"))
-                        .intValue());
+        for (int i = 0; i < clientsTop5.size(); i++) {
+            JSONObject ball = (JSONObject) clientsTop5.get(i);
+            String name = (String) ball.get("name");
+            int score = (((Long) ball.get("score")).intValue() - Ball.START_CLIENT_RADIUS);
+            if (score < 0) {
+                score = 0;
             }
-        });
-        for (int i = 0; i < Math.min(5, clientsArray.size()); i++) {
-            JSONObject ball = (JSONObject) clientsArray.get(i);
-            String name = ball.get("name") + "....." + (((Long) ball.get("radius")).intValue()
-                - Ball.START_CLIENT_RADIUS);
-            Point size = gc.textExtent(name);
-            gc.drawText(i + 1 + ". " + name, Ball.WIDTH - 50 - size.x, 40 + (size.y * i));
+
+            String out = i + 1 + ". " + StringUtils.rightPad(name, 5, '.') + "..." + StringUtils
+                .leftPad(score + "", 3, '.');
+            Point size = gc.textExtent(out);
+            gc.drawText(out, Ball.WIDTH - 50 - size.x, 40 + (size.y * i));
         }
         font.dispose();
         col1.dispose();
