@@ -117,11 +117,10 @@ public class Handler implements Runnable {
 
                 col.getClientsList4Delete().add((String) o.get("uuid"));
                 _selectionKey.cancel();
-                _selectionKey.channel().close();
+                //                _selectionKey.channel().close();
+                return;
             }
         } catch (ParseException p) {
-        } catch (IOException e) {
-            log.error(e);
         }
 
 

@@ -37,12 +37,14 @@ public class CheckCollissions implements Runnable {
                 clientsList
                     .addAll(clientList4Register);//добавить только что зарегистрированных клиентов
                 clientList4Register.clear();
-                clientsList.removeAll(clientList4Delete);//Убрать отключившихся клиентов
-                clientList4Delete.clear();
 
                 for (Client c : clientsList) {//Обновить данные клиентов
                     if (clients4Update.containsKey(c.getUUID())) {
                         c.getBall().setUserFieldPosition(clients4Update.get(c.getUUID()));
+                    }
+                    //Убрать отключившихся клиентов
+                    if (clientList4Delete.contains(c.getUUID())) {
+                        clientsList.remove(c);
                     }
                 }
                 clients4Update.clear();
