@@ -1,5 +1,6 @@
 package net.mephi.client.components;
 
+import org.apache.log4j.Logger;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 
@@ -12,6 +13,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * Created by Acer on 16.01.2016.
  */
 public class Ball implements Serializable {
+    private Logger log = Logger.getLogger(Ball.class);
 
     public static final int WIDTH = (int) (Toolkit.getDefaultToolkit().getScreenSize().width * 0.9);
     public static final int HEIGHT =
@@ -21,7 +23,7 @@ public class Ball implements Serializable {
     public static final int END_GAME_RADIUS = 0;
     public static final int MAX_RADIUS = HEIGHT / 3;
     public static final String FOOD_NAME = "";
-    public static final int LINE_SPACE_SIZE = START_CLIENT_RADIUS / 2;
+    public static final int LINE_SPACE_SIZE = START_CLIENT_RADIUS;
     private Point center = new Point(0, 0);
     private int radius;
     private Point cursorLocation = new Point(0, 0);
@@ -152,21 +154,21 @@ public class Ball implements Serializable {
         //Магия подобных треугольников по углу и подобным сторонам.
         //ABC ~ A1B1C1 A -общий -> AB/A1B1 = AC/A1C1 = BC/B1C1
         //
-
+        //log.debug("cursor position "+relativeCursorLocation);
         double AB = Math.sqrt(
             Math.pow(relativeCursorLocation.x - getCenterLocalPosition().x, 2) + Math
-                .pow(relativeCursorLocation.y - getCenterLocalPosition().y, 2));
-        double AC = relativeCursorLocation.x - getCenterLocalPosition().x;
-        double BC = getCenterLocalPosition().y - relativeCursorLocation.y;
+                .pow(relativeCursorLocation.y - getCenterLocalPosition().y, 2));//всегда >0
+        double AC = relativeCursorLocation.x - getCenterLocalPosition().x;//<0 если шаг влево
+        double BC = relativeCursorLocation.y - getCenterLocalPosition().y;//<0 если шаг вверх
         double A1B1 = radius * 0.1;
 
-        double A1C1 = A1B1 * AC / AB;
-        double B1C1 = A1B1 * BC / AB;
+        double A1C1 = A1B1 * AC / AB;//<0 если шаг влево
+        double B1C1 = A1B1 * BC / AB;//<0 если шаг вверх
 
 
 
-        int x = (int) (getCenterLocalPosition().x + A1C1);
-        int y = (int) (getCenterLocalPosition().y - B1C1);
+        int x = (int) Math.round(getCenterLocalPosition().x + A1C1);
+        int y = (int) Math.round(getCenterLocalPosition().y + B1C1);
 
 
 
@@ -196,29 +198,32 @@ public class Ball implements Serializable {
         int xGlobal = userField.x + (x - getCenterLocalPosition().x);//глобальные
         int yGlobal = userField.y + (y - getCenterLocalPosition().y);
 
+        boolean freezX = false, freezY = false;
         //Проверка выхода за глобальные границы
         if (xGlobal + userField.width / 2 > Board.WIDTH) {//правый
             xGlobal = Board.WIDTH - userField.width / 2;
+            freezX = true;
         }
         if (yGlobal + userField.height / 2 > Board.HEIGHT) {//низ
             yGlobal = Board.HEIGHT - userField.height / 2;
+            freezY = true;
         }
         if (xGlobal + userField.width / 2 < 0) {//лево
             xGlobal = -userField.width / 2;
+            freezX = true;
         }
         if (yGlobal + userField.height / 2 < 0) {//вверх
             yGlobal = -userField.height / 2;
+            freezY = true;
         }
 
+        updateLineShift(x, y, freezX, freezY);
 
-        //Смещение сетки на доске.
-        linesShift.x = (getCenterLocalPosition().x - x) % Ball.LINE_SPACE_SIZE;
-        linesShift.y = (getCenterLocalPosition().y - y) % Ball.LINE_SPACE_SIZE;
 
+        log.debug("lineshift new " + linesShift);
         userField.x = xGlobal;
         userField.y = yGlobal;
         Point p = new Point(x + userField.width / 2, y + userField.height / 2);
-        //        setCenterPosition(p);
         return p;
     }
 
@@ -307,5 +312,45 @@ public class Ball implements Serializable {
 
     @Override public String toString() {
         return getName() + " " + getRadius() + " " + getCenterLocalPosition();
+    }
+
+    /**
+     * Поскольку смещается поле, а шарик всегда в центре, то двигаем сетку на фоне.
+     * Пересчет смещения сетки.
+     *
+     * @param x      - новые координаты центра, после шага.
+     * @param y      - новые координаты центра, после шага.
+     * @param freezX - достигли края (право или лево)
+     * @param freezY - достигла края (верх или них)
+     * @return смещение сетки.
+     */
+    public Point updateLineShift(int x, int y, boolean freezX, boolean freezY) {
+        log.debug("lineshift old " + linesShift);
+
+
+        //Смещение сетки на доске 1.
+        int tempW = (getCenterLocalPosition().x - x) % Ball.LINE_SPACE_SIZE;
+        int tempH = (getCenterLocalPosition().y - y) % Ball.LINE_SPACE_SIZE;
+
+        this.linesShift.x = (freezX ? linesShift.x : linesShift.x + tempW) % Ball.LINE_SPACE_SIZE;
+        this.linesShift.y = (freezY ? linesShift.y : linesShift.y + tempH) % Ball.LINE_SPACE_SIZE;
+
+        //Смещение сетки на доске 2.
+        //        linesShift.x = (int)Math.round((linesShift.x - A1B1)%Ball.LINE_SPACE_SIZE);
+        //        linesShift.y = (int)Math.round((linesShift.y - B1C1)%Ball.LINE_SPACE_SIZE);
+        //        log.debug("lineshift "+linesShift);
+        //        if(linesShift.x <0){
+        //            linesShift.x = Ball.LINE_SPACE_SIZE - linesShift.x;
+        //        }
+        //        if(linesShift.y <0){
+        //            linesShift.y = Ball.LINE_SPACE_SIZE + linesShift.y;
+        //        }
+        //        if(linesShift.x > Ball.LINE_SPACE_SIZE){
+        //            linesShift.x = linesShift.x - Ball.LINE_SPACE_SIZE;
+        //        }
+        //        if(linesShift.y > Ball.LINE_SPACE_SIZE){
+        //            linesShift.y = linesShift.y - Ball.LINE_SPACE_SIZE;
+        //        }
+        return new Point(0, 0);
     }
 }

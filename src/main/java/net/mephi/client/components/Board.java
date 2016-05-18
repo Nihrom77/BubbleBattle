@@ -88,18 +88,17 @@ public class Board extends Canvas {
      * Перерисовать доску.
      * Выполнется в потоке SWT.
      *
-     * @param uuid
+     *
      */
-    public void refreshBoard(JSONObject clients, String uuid, Point linesShift, Client client) {
+    public void refreshBoard(JSONObject clients, Point linesShift, Client client) {
         this.clients = clients;
         this.client = client;
         //TODO: работает так себе
         //        if (this.linesShift.x == linesShift.x || this.linesShift.y == linesShift.y) {
         //        } else {
-        this.linesShift.x = (this.linesShift.x + linesShift.x) % Ball.LINE_SPACE_SIZE;
-        this.linesShift.y = (this.linesShift.y + linesShift.y) % Ball.LINE_SPACE_SIZE;
+        this.linesShift = linesShift;
         //        }
-        this.uuid = uuid;
+        this.uuid = client.getUUID();
         clientsArray = (JSONArray) clients.get("clients");
         foodArray = (JSONArray) clients.get("food");
         this.clientsTop5 = (JSONArray) clients.get("top5");
@@ -127,8 +126,8 @@ public class Board extends Canvas {
         gc.setLineWidth(1);
         e.gc.setForeground(colLine);
         for (int i = 0; i < Ball.WIDTH; i += Ball.LINE_SPACE_SIZE) {
-            gc.drawLine(0, i + linesShift.y, Ball.WIDTH, i + linesShift.y);
-            gc.drawLine(i + linesShift.x, 0, i + linesShift.x, Ball.HEIGHT);
+            gc.drawLine(0, i + linesShift.y, Ball.WIDTH, i + linesShift.y);//горизонтальные
+            gc.drawLine(i + linesShift.x, 0, i + linesShift.x, Ball.HEIGHT);//вертикальные
         }
         colLine.dispose();
         log.debug("Number of clients = " + clientsArray.size());

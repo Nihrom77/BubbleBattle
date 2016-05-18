@@ -118,7 +118,7 @@ public class Client {
                             if (o.get("type").equals("refresh")) {
                                 //перерисовать доску
 
-                                board.refreshBoard(o, getUUID(), ball.getLinesShift(), thisClient);
+                                board.refreshBoard(o, ball.getLinesShift(), thisClient);
                             }
                         } catch (ParseException e) {
                             log.error(e);

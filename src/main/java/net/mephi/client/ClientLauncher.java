@@ -77,6 +77,9 @@ public class ClientLauncher {
         Client client = new Client();
         client.setClient(client);
         Ball ball = new Ball(inputName, Ball.START_CLIENT_RADIUS);
+        log.debug("Food radius = " + Ball.FOOD_RADIUS);
+        log.debug("start ball radius = " + Ball.START_CLIENT_RADIUS);
+        log.debug("line space = " + Ball.LINE_SPACE_SIZE);
         client.setBall(ball);
         client.setBoard(board);
 
