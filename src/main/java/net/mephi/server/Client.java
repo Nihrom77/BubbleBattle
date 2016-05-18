@@ -123,10 +123,10 @@ public class Client {
                         } catch (ParseException e) {
                             log.error(e);
                         }
-                        try {
-                            Thread.sleep(20);
-                        } catch (InterruptedException e) {
-                        }
+                        //                        try {
+                        //                            Thread.sleep(20);
+                        //                        } catch (InterruptedException e) {
+                        //                        }
 
                     }
 
