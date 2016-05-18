@@ -47,7 +47,6 @@ public class Board extends Canvas {
         this.shell = shell;
         display = shell.getDisplay();
         addListener(SWT.Paint, event -> doPainting(event));//Слушатель события redraw()
-
         Color col = new Color(shell.getDisplay(), 255, 255, 255);
 
         setBackground(col);
@@ -61,8 +60,13 @@ public class Board extends Canvas {
             public void run() {
 
                 Point cursorLocation = Display.getCurrent().getCursorLocation();
-                Point relativeCursorLocation =
-                    Display.getCurrent().getFocusControl().toControl(cursorLocation);
+                Point relativeCursorLocation = new Point(Ball.WIDTH / 2, Ball.HEIGHT / 2);
+                if (Display.getCurrent() != null
+                    && Display.getCurrent().getFocusControl() != null) {
+                    relativeCursorLocation =
+                        Display.getCurrent().getFocusControl().toControl(cursorLocation);
+
+                }
 
                 setCursorLocation(relativeCursorLocation);
                 synchronized (lock) {
@@ -73,7 +77,6 @@ public class Board extends Canvas {
         synchronized (lock) {
             try {
                 lock.wait(20);
-                //                Thread.sleep(20);
             } catch (InterruptedException e) {
             }
         }
@@ -87,17 +90,11 @@ public class Board extends Canvas {
     /**
      * Перерисовать доску.
      * Выполнется в потоке SWT.
-     *
-     *
      */
     public void refreshBoard(JSONObject clients, Point linesShift, Client client) {
         this.clients = clients;
         this.client = client;
-        //TODO: работает так себе
-        //        if (this.linesShift.x == linesShift.x || this.linesShift.y == linesShift.y) {
-        //        } else {
         this.linesShift = linesShift;
-        //        }
         this.uuid = client.getUUID();
         clientsArray = (JSONArray) clients.get("clients");
         foodArray = (JSONArray) clients.get("food");
@@ -105,7 +102,9 @@ public class Board extends Canvas {
         if (clientsArray.size() > 0) {
             Display.getDefault().asyncExec(new Runnable() {
                 public void run() {
-                    redraw();
+                    if (!shell.isDisposed()) {
+                        redraw();
+                    }
                 }
             });
         }
@@ -115,7 +114,10 @@ public class Board extends Canvas {
 
     private void doPainting(Event e) {
         log.debug("doPainting");
+
+
         GC gc = e.gc;
+        gc.setAntialias(SWT.ON);
         Color col = new Color(shell.getDisplay(), 255, 255, 255);
         gc.setBackground(col);
         col.dispose();
@@ -128,6 +130,7 @@ public class Board extends Canvas {
         for (int i = 0; i < Ball.WIDTH; i += Ball.LINE_SPACE_SIZE) {
             gc.drawLine(0, i + linesShift.y, Ball.WIDTH, i + linesShift.y);//горизонтальные
             gc.drawLine(i + linesShift.x, 0, i + linesShift.x, Ball.HEIGHT);//вертикальные
+            //            gc.drawLine(i + linesShift.x, 0,  Ball.HEIGHT,i + linesShift.x);//вертикальные
         }
         colLine.dispose();
         log.debug("Number of clients = " + clientsArray.size());
@@ -172,10 +175,14 @@ public class Board extends Canvas {
                 Point center =
                     new Point(((Long) ball.get("x")).intValue(), ((Long) ball.get("y")).intValue());
                 int radius = ((Long) ball.get("radius")).intValue();
-
-                e.gc.setBackground(getSWTColorFromJSON((JSONObject) ball.get("color"), display));
+                Color balCol = getSWTColorFromJSON((JSONObject) ball.get("color"), display);
+                Color boardCol = get25PercentBrighterColor(display, balCol);
+                e.gc.setBackground(boardCol);
                 Point leftTop = Ball.getLeftTopPosition(center, radius);
                 e.gc.fillOval(leftTop.x, leftTop.y, radius * 2, radius * 2);
+                e.gc.setBackground(balCol);
+                e.gc.fillOval(leftTop.x, leftTop.y, radius * 2 - (int) (radius * 2 * 0.02),
+                    radius * 2 - (int) (radius * 2 * 0.02));
 
                 //нарисовать имя
                 Font font = new Font(e.display, "Helvetica", radius / 3, SWT.NORMAL);
@@ -254,13 +261,20 @@ public class Board extends Canvas {
     }
 
     public org.eclipse.swt.graphics.Color getSWTColor(java.awt.Color color, Display d) {
-        return new org.eclipse.swt.graphics.Color(d, color.getRed(), color.getGreen(),
-            color.getBlue());
+        return new Color(d, color.getRed(), color.getGreen(), color.getBlue());
     }
 
-    public org.eclipse.swt.graphics.Color getSWTColorFromJSON(JSONObject color, Display d) {
+    public Color getSWTColorFromJSON(JSONObject color, Display d) {
         java.awt.Color c = new java.awt.Color(((Long) color.get("red")).intValue(),
             ((Long) color.get("green")).intValue(), ((Long) color.get("blue")).intValue());
         return getSWTColor(c, d);
+    }
+
+    public Color get25PercentBrighterColor(Display d, Color c) {
+        //        int red = c.getRed();
+        //        float fraction = 0.25f; // brighten by 25%
+        //
+        //        red = (int) (red + (red * fraction));
+        return new Color(d, 0, 0, 0);
     }
 }

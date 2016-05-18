@@ -77,6 +77,7 @@ public class ClientLauncher {
         Client client = new Client();
         client.setClient(client);
         Ball ball = new Ball(inputName, Ball.START_CLIENT_RADIUS);
+        log.debug("Ball max radius " + Ball.MAX_RADIUS);
         log.debug("Food radius = " + Ball.FOOD_RADIUS);
         log.debug("start ball radius = " + Ball.START_CLIENT_RADIUS);
         log.debug("line space = " + Ball.LINE_SPACE_SIZE);
@@ -108,22 +109,6 @@ public class ClientLauncher {
 
             Socket clientSocket =
                 new Socket(p.getProperty("serverAddress"), Integer.parseInt(p.getProperty("port")));
-            //            OutputStream os = clientSocket.getOutputStream();
-            //            ObjectOutputStream out = new ObjectOutputStream(os);
-            //            client.setSocket(clientSocket);
-            //            client.setOos(out);
-            //            //Отправляем имя шарика, цвет, размер экрана.
-            //            out.writeObject(client.getBall());
-            //            out.flush();
-            //            out.reset();
-            //
-            //            //Получаем уникальный ID
-            //            InputStream is = clientSocket.getInputStream();
-            //            ObjectInputStream ois = new ObjectInputStream(is);
-            //            client.setOis(ois);
-            //            String uuid = (String) ois.readObject();
-            //            client.setUUID(uuid);
-            //            log.debug("Connected to server; ID=" + client.getUUID());
 
             //Отправляем имя шарика, цвет, размер экрана.
             JSONObject obj = new JSONObject();

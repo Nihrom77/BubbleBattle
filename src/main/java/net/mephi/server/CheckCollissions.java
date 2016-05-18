@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 /**
  * Created by Snoll on 16.05.2016.
@@ -131,10 +130,7 @@ public class CheckCollissions implements Runnable {
         log.debug("MAX_FOOD_AMOUNT=" + Board.MAX_FOOD_AMOUNT);
         for (int i = 0; i < Board.MAX_FOOD_AMOUNT; i++) {
             Ball f = new Ball(Ball.FOOD_NAME, Ball.FOOD_RADIUS);
-            Random r = new Random();
-            java.awt.Color color =
-                java.awt.Color.getHSBColor(r.nextFloat(), r.nextFloat(), r.nextFloat());
-            f.setColor(color);
+            f.setRandomColor();
             f.setRandomCenterPosition();
             f.setVisible(true);
             f.setFood(true);

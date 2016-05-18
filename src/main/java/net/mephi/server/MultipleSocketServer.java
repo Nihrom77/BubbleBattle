@@ -1,16 +1,11 @@
 package net.mephi.server;
 
-import net.mephi.client.Clients;
 import net.mephi.client.components.Ball;
 import net.mephi.client.components.Board;
 import org.apache.log4j.Logger;
-import org.eclipse.swt.graphics.Point;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -18,7 +13,6 @@ import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -130,157 +124,14 @@ public class MultipleSocketServer implements Runnable {
         return _workerPool;
     }
 
-    public List<Client> getClientsList() {
-        return clientsList;
-    }
 
 
-
-    public void startServer() {
-
-
-        try (InputStream input = new FileInputStream("classes/connections.properties")) {
-            Properties p = new Properties();
-            ServerSocket socket1 = new ServerSocket(Integer.parseInt(p.getProperty("port")));
-            ExecutorService executor = Executors.newCachedThreadPool();
-            while (true) {
-
-            }
-        } catch (IOException e) {
-            log.debug(e);
-        }
-
-        // Поток регистрации клиентов
-        ServerRegistrationThread regThread = new ServerRegistrationThread(this);
-        Thread thread = new Thread(regThread);
-        thread.start();
-
-        //Основной поток обработки данных
-        while (true) {
-            while (getClientsList().size() > 0 || clientList4Register.size() > 0) {
-                getClientsList()
-                    .addAll(clientList4Register);//добавить только что зарегистрированных клиентов
-                clientList4Register.clear();
-                getClientsList().removeAll(clientList4Delete);
-                clientList4Delete.clear();
-
-                for (Client client : getClientsList()) {
-                    try {
-                        //отправить запрос на данные
-                        //                        askForData(client);
-                        //                        getClientData(client);
-
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        closeClient(client);
-                        continue;
-
-                    }
-                }
-
-                //Проверить столкновения
-
-                //Сбор новых данных
-                Clients sendClients = new Clients();
-                for (Client client : getClientsList()) {
-                    sendClients.getUuids().add(client.getUUID());
-                    sendClients.getClientBalls().add(client.getBall());
-                }
-                for (Ball food : foods) {
-                    sendClients.getCoordinateFoods().add(food);
-                }
-                //Отправка обновленных данных
-                for (Client client : getClientsList()) {
-                    try {
-                        //                        sendNewData(client, sendClients);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        closeClient(client);
-                        continue;
-                    }
-                }
-
-                //Удаление съеденных клиентов
-                for (Client client : getClientsList()) {
-                    if (!client.getBall().isVisible()) {
-                        closeClient(client);
-                    }
-                }
-
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            synchronized (lock) {
-                try {
-
-                    lock.wait();
-
-                } catch (InterruptedException ie) {
-                }
-            }
-        }
-    }
-
-    //    public void askForData(Client client) throws IOException {
-    //        log.debug("Asking data from " + client);
-    //        ObjectOutputStream out = client.getOos();
-    //        out.writeObject(Client.DATA_REQUEST);
-    //        out.flush();
-    //        out.reset();
-    //
-    //
-    //    }
-
-    //    public void getClientData(Client client) throws IOException {
-    //        log.debug("Getting data ");
-    //        ObjectInputStream ois = client.getOis();
+    //    public void closeClient(Client c) {
+    //        clientList4Delete.add(c);
     //        try {
-    //            String clientCursorPosition = (String) ois.readObject();
-    //            client.setCursorPosition(parsePosition(clientCursorPosition));
-    //            log.debug(client.getCursorPosition() + " from " + client);
-    //            client.getBall().setCenterPosition(
-    //                client.getBall().countNewFieldPosition(client.getCursorPosition()));
-    //            log.debug("new Position " + client);
-    //        } catch (ClassNotFoundException e) {
-    //            e.printStackTrace();
+    //            c.getSocket().close();
+    //        } catch (Exception e) {
     //            log.error(e);
     //        }
     //    }
-
-
-
-    //    public void sendNewData(Client client, Clients clients) throws IOException {
-    //        log.debug("sending Data " + clients.getClientBalls() + " ...");
-    //        ObjectOutputStream out = client.getOos();
-    //        //Отправляем данные всех клиентов этому клиенту
-    //        out.writeObject(clients);
-    //        out.flush();
-    //        out.reset();
-    //        log.debug("ok");
-    //    }
-
-
-
-    public void addClient(Client c) {
-        clientList4Register.add(c);
-    }
-
-
-
-    public Point parsePosition(String input) {
-        String[] temp = input.substring(input.indexOf("/") + 1).split("_");
-        return new Point(Integer.parseInt(temp[0]), Integer.parseInt(temp[1]));
-    }
-
-    public void closeClient(Client c) {
-        clientList4Delete.add(c);
-        try {
-            c.getSocket().close();
-        } catch (Exception e) {
-        }
-    }
 }

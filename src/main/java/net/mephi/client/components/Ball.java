@@ -21,11 +21,11 @@ public class Ball implements Serializable {
     public static final int START_CLIENT_RADIUS = (int) (HEIGHT * 0.05);
     public static final int FOOD_RADIUS = START_CLIENT_RADIUS / 4;
     public static final int END_GAME_RADIUS = 0;
-    public static final int MAX_RADIUS = HEIGHT / 3;
+    public static final double MAX_RADIUS = HEIGHT / 3;
     public static final String FOOD_NAME = "";
     public static final int LINE_SPACE_SIZE = START_CLIENT_RADIUS;
     private Point center = new Point(0, 0);
-    private int radius;
+    private double radius;
     private Point cursorLocation = new Point(0, 0);
 
     private Rectangle userField = new Rectangle(0, 0, 0, 0);
@@ -80,7 +80,7 @@ public class Ball implements Serializable {
     }
 
     public int getRadius() {
-        return radius;
+        return (int) Math.round(radius);
     }
 
     public Color getColor() {
@@ -114,7 +114,6 @@ public class Ball implements Serializable {
     public void setUserFieldPosition(Point p) {
         userField.x = p.x;
         userField.y = p.y;
-        //        setCenterPosition(new Point(p.x / 2, p.y / 2));
     }
 
     public void setFood(boolean isFood) {
@@ -126,22 +125,17 @@ public class Ball implements Serializable {
     }
 
     public void increaseMass(Ball b) {
-        int r = (int) (Math.sqrt(radius * radius + (b.getRadius() * b.getRadius())));
+
+        double r = ((Math.sqrt(radius * radius + (b.getRadius() * b.getRadius()))));
         if (r > MAX_RADIUS) {
             radius = MAX_RADIUS;
         } else {
             radius = r;
         }
 
+
     }
 
-    public int getSpeed() {
-        if (Ball.START_CLIENT_RADIUS - (radius - Ball.START_CLIENT_RADIUS) / 5 < 4) {
-            return 4;
-        } else {
-            return Ball.START_CLIENT_RADIUS - (radius - Ball.START_CLIENT_RADIUS) / 8;
-        }
-    }
 
 
     /**
@@ -160,7 +154,7 @@ public class Ball implements Serializable {
                 .pow(relativeCursorLocation.y - getCenterLocalPosition().y, 2));//всегда >0
         double AC = relativeCursorLocation.x - getCenterLocalPosition().x;//<0 если шаг влево
         double BC = relativeCursorLocation.y - getCenterLocalPosition().y;//<0 если шаг вверх
-        double A1B1 = radius * 0.1;
+        double A1B1 = AB / radius;
 
         double A1C1 = A1B1 * AC / AB;//<0 если шаг влево
         double B1C1 = A1B1 * BC / AB;//<0 если шаг вверх
@@ -258,12 +252,9 @@ public class Ball implements Serializable {
      */
     public void setRandomFieldPosition() {
         userField.x = ThreadLocalRandom.current()
-            .nextInt(0, (int) (userField.width - userField.width * 0.05) + 1);
+            .nextInt(0, (int) Math.round(userField.width - userField.width * 0.05) + 1);
         userField.y = ThreadLocalRandom.current()
-            .nextInt(0, (int) (userField.height - userField.height * 0.05) + 1);
-        //        userField.width = WIDTH;
-        //        userField.height = HEIGHT;
-        //        center = new Point(userField.x +userField.width /2, userField.y + userField.height / 2); //локальные
+            .nextInt(0, (int) Math.round(userField.height - userField.height * 0.05) + 1);
     }
 
     public void setRandomCenterPosition() {
@@ -276,7 +267,11 @@ public class Ball implements Serializable {
 
     public void setRandomColor() {
         Random r = new Random();
-        color = java.awt.Color.getHSBColor(r.nextFloat(), r.nextFloat(), r.nextFloat());
+        float intensity = r.nextFloat();
+        float brightness = r.nextFloat();
+        brightness = brightness < 0.5f ? brightness + 0.4f : brightness;
+        intensity = intensity < 0.5f ? intensity + 0.4f : intensity;
+        color = java.awt.Color.getHSBColor(r.nextFloat(), intensity, brightness);
 
     }
 
@@ -335,22 +330,6 @@ public class Ball implements Serializable {
         this.linesShift.x = (freezX ? linesShift.x : linesShift.x + tempW) % Ball.LINE_SPACE_SIZE;
         this.linesShift.y = (freezY ? linesShift.y : linesShift.y + tempH) % Ball.LINE_SPACE_SIZE;
 
-        //Смещение сетки на доске 2.
-        //        linesShift.x = (int)Math.round((linesShift.x - A1B1)%Ball.LINE_SPACE_SIZE);
-        //        linesShift.y = (int)Math.round((linesShift.y - B1C1)%Ball.LINE_SPACE_SIZE);
-        //        log.debug("lineshift "+linesShift);
-        //        if(linesShift.x <0){
-        //            linesShift.x = Ball.LINE_SPACE_SIZE - linesShift.x;
-        //        }
-        //        if(linesShift.y <0){
-        //            linesShift.y = Ball.LINE_SPACE_SIZE + linesShift.y;
-        //        }
-        //        if(linesShift.x > Ball.LINE_SPACE_SIZE){
-        //            linesShift.x = linesShift.x - Ball.LINE_SPACE_SIZE;
-        //        }
-        //        if(linesShift.y > Ball.LINE_SPACE_SIZE){
-        //            linesShift.y = linesShift.y - Ball.LINE_SPACE_SIZE;
-        //        }
         return new Point(0, 0);
     }
 }
