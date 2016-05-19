@@ -4,9 +4,7 @@ import net.mephi.client.components.Ball;
 import net.mephi.client.components.Board;
 import org.apache.log4j.Logger;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -15,7 +13,6 @@ import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -62,13 +59,13 @@ public class MultipleSocketServer implements Runnable {
 
     public static void main(String[] args) {
 
-        try (InputStream input = new FileInputStream("classes/connections.properties")) {
-            Properties p = new Properties();
-            p.load(input);
+        String port = args.length > 0 ? args[0] : "6999";
+        try {
+            //            Properties p = new Properties();
+            //            p.load(input);
             _workerPool = Executors.newFixedThreadPool(WORKER_POOL_SIZE);
 
-            MultipleSocketServer server =
-                new MultipleSocketServer(Integer.parseInt(p.getProperty("port")));
+            MultipleSocketServer server = new MultipleSocketServer(Integer.parseInt(port));
             Thread t = new Thread(server);
             t.setName("Multiserver thread");
             t.start();

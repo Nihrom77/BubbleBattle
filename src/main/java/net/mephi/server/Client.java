@@ -93,9 +93,11 @@ public class Client {
                     DataOutputStream outToServer = getOos();
                     BufferedReader inFromServer = getOis();
                     JSONParser parser = new JSONParser();
+                    long fps = 0;
+
                     while (isActive) {
 
-
+                        long t1 = System.currentTimeMillis();
                         //Отправить свой id и новые координаты поля, относительно глобального
                         Point p = board.getCursorLocation();
                         ball.setCursorLocation(p);
@@ -108,26 +110,40 @@ public class Client {
                         obj.put("y", ball.getUserField().y);
 
                         log.debug("send " + obj.toString());
+                        long cursorTime = System.currentTimeMillis();
+                        log.debug("cursor Time " + (cursorTime - t1));
                         outToServer.write(obj.toString().getBytes());
-
+                        long writeTime = System.currentTimeMillis();
+                        log.debug("write time " + (writeTime - cursorTime));
                         try {
                             //ожидать обработанных данных
                             String res = inFromServer.readLine();
+                            long readTime = System.currentTimeMillis();
+                            log.debug("read Time " + (readTime - writeTime));
                             JSONObject o = (JSONObject) parser.parse(res);
                             log.debug("receive " + o.toString());
                             if (o.get("type").equals("refresh")) {
                                 //перерисовать доску
 
-                                board.refreshBoard(o, ball.getLinesShift(), thisClient);
+                                board.refreshBoard(o, ball.getLinesShift(), thisClient, fps);
                             }
+                            long refreshTime = System.currentTimeMillis();
+                            log.debug("refresh Time " + (refreshTime - readTime));
                         } catch (ParseException e) {
                             log.error(e);
                         }
-                        //                        try {
-                        //                            Thread.sleep(20);
-                        //                        } catch (InterruptedException e) {
-                        //                        }
 
+
+                        long t2 = System.currentTimeMillis();
+                        fps = t2 - t1;
+                        log.debug("general Time =" + (t2 - t1));
+                        if (t2 - t1 < 20) {
+                            try {
+                                fps = 20 - (t2 - t1);
+                                Thread.sleep(20 - (t2 - t1));
+                            } catch (InterruptedException e) {
+                            }
+                        }
                     }
 
                     JSONObject obj = new JSONObject();

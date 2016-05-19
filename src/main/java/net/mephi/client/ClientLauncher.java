@@ -23,13 +23,10 @@ import org.json.simple.parser.ParseException;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.net.Socket;
-import java.util.Properties;
 
 /**
  * Created by Snoll on 12.05.2016.
@@ -40,11 +37,15 @@ public class ClientLauncher {
 
     public static void main(String[] args) {
         ClientLauncher main = new ClientLauncher();
-        main.start();
+        if (args.length == 2) {
+            main.start(args[0], args[1]);
+        } else {
+            main.start("localhost", "6999");
+        }
     }
 
 
-    private void start() {
+    private void start(String host, String port) {
         Display display = new Display();
         Shell shell = new Shell(display, SWT.SHELL_TRIM | SWT.CENTER);
         shell.setText("Bubble battle");
@@ -90,7 +91,7 @@ public class ClientLauncher {
             display.dispose();
         });
 
-        connectToServer(client);
+        connectToServer(host, port, client);
         client.startGame();
         while (!shell.isDisposed()) {
             if (!display.readAndDispatch()) {
@@ -102,13 +103,10 @@ public class ClientLauncher {
     }
 
 
-    private void connectToServer(Client client) {
-        try (InputStream input = new FileInputStream("classes/connections.properties")) {
-            Properties p = new Properties();
-            p.load(input);
+    private void connectToServer(String host, String port, Client client) {
+        try {
 
-            Socket clientSocket =
-                new Socket(p.getProperty("serverAddress"), Integer.parseInt(p.getProperty("port")));
+            Socket clientSocket = new Socket(host, Integer.parseInt(port));
 
             //Отправляем имя шарика, цвет, размер экрана.
             JSONObject obj = new JSONObject();

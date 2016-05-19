@@ -38,6 +38,7 @@ public class Board extends Canvas {
     private JSONArray clientsTop5 = new JSONArray();
     private Point linesShift = new Point(0, 0);
     private Client client = null;
+    private long fps = 1;
 
     private final Object lock = new Object();
 
@@ -54,32 +55,15 @@ public class Board extends Canvas {
 
     }
 
-    public Point getCursorLocation() {
+    private void updateCursorLocation() {
+        Point cursorMonitorLocation = Display.getCurrent().getCursorLocation();
+        if (Display.getCurrent() != null && Display.getCurrent().getFocusControl() != null) {
+            this.cursorLocation =
+                Display.getCurrent().getFocusControl().toControl(cursorMonitorLocation);
 
-        Display.getDefault().asyncExec(new Runnable() {
-            public void run() {
-
-                Point cursorLocation = Display.getCurrent().getCursorLocation();
-                Point relativeCursorLocation = new Point(Ball.WIDTH / 2, Ball.HEIGHT / 2);
-                if (Display.getCurrent() != null
-                    && Display.getCurrent().getFocusControl() != null) {
-                    relativeCursorLocation =
-                        Display.getCurrent().getFocusControl().toControl(cursorLocation);
-
-                }
-
-                setCursorLocation(relativeCursorLocation);
-                synchronized (lock) {
-                    lock.notify();
-                }
-            }
-        });
-        synchronized (lock) {
-            try {
-                lock.wait(20);
-            } catch (InterruptedException e) {
-            }
         }
+    }
+    public Point getCursorLocation() {
         return this.cursorLocation;
     }
 
@@ -91,20 +75,19 @@ public class Board extends Canvas {
      * Перерисовать доску.
      * Выполнется в потоке SWT.
      */
-    public void refreshBoard(JSONObject clients, Point linesShift, Client client) {
+    public void refreshBoard(JSONObject clients, Point linesShift, Client client, long fps) {
         this.clients = clients;
         this.client = client;
+        this.fps = fps;
         this.linesShift = linesShift;
         this.uuid = client.getUUID();
         clientsArray = (JSONArray) clients.get("clients");
         foodArray = (JSONArray) clients.get("food");
         this.clientsTop5 = (JSONArray) clients.get("top5");
         if (clientsArray.size() > 0) {
-            Display.getDefault().asyncExec(new Runnable() {
-                public void run() {
-                    if (!shell.isDisposed()) {
-                        redraw();
-                    }
+            Display.getDefault().asyncExec(() -> {
+                if (!shell.isDisposed()) {
+                    redraw();
                 }
             });
         }
@@ -113,6 +96,7 @@ public class Board extends Canvas {
     }
 
     private void doPainting(Event e) {
+        updateCursorLocation();
         log.debug("doPainting");
 
 
@@ -147,12 +131,14 @@ public class Board extends Canvas {
                 }
             }
 
-            //нарисовать координаты
+            //нарисовать координаты курсора
             Font font = new Font(e.display, "Helvetica", 10, SWT.NORMAL);
             Color col1 = new Color(e.display, 0, 0, 0);
             gc.setFont(font);
             gc.setForeground(col1);
-            gc.drawText(Display.getCurrent().getCursorLocation().toString(), 20, 20);
+            gc.drawText(getCursorLocation().toString(), 20, 20);
+            gc.drawText("FPS: " + String.valueOf(Math.round(1000.0 / (fps == 0 ? 1 : fps))), 20,
+                50);
             font.dispose();
             col1.dispose();
 
@@ -194,6 +180,7 @@ public class Board extends Canvas {
                     center.y - size.y / 2);
                 font.dispose();
                 col.dispose();
+
             }
 
 
@@ -236,11 +223,11 @@ public class Board extends Canvas {
     private void drawTopScores(Event e) {
         GC gc = e.gc;
 
-        Font font = new Font(e.display, "Helvetica", 10, SWT.BOLD);
+        Font font = new Font(e.display, "Helvetica", 13, SWT.BOLD);
         Color col1 = new Color(e.display, 0, 0, 0);
         gc.setFont(font);
         gc.setForeground(col1);
-        gc.drawText("TOP 5:", Ball.WIDTH - 100, 20);
+        gc.drawText("TOP 5:", Ball.WIDTH - 130, 20);
 
 
         for (int i = 0; i < clientsTop5.size(); i++) {
@@ -254,7 +241,7 @@ public class Board extends Canvas {
             String out = i + 1 + ". " + StringUtils.rightPad(name, 5, '.') + "..." + StringUtils
                 .leftPad(score + "", 3, '.');
             Point size = gc.textExtent(out);
-            gc.drawText(out, Ball.WIDTH - 50 - size.x, 40 + (size.y * i));
+            gc.drawText(out, Ball.WIDTH - 50 - size.x, 50 + (size.y * i));
         }
         font.dispose();
         col1.dispose();
