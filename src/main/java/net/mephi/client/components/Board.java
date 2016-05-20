@@ -18,12 +18,14 @@ import org.json.simple.JSONObject;
 
 public class Board extends Canvas {
 
-    public static final int WIDTH = 3000;
-    public static final int HEIGHT = 3000;
+    public static final int WIDTH = 10000;
+    public static final int HEIGHT = 10000;
 
 
     public static final int FOOD_SIZE_RADIUS = (int) (WIDTH * 0.001 + 5);
     public static final int MAX_FOOD_AMOUNT = (int) (WIDTH * HEIGHT / FOOD_SIZE_RADIUS / 8000);
+    public static final int BLACK_HOLES_AMOUNT = 5;
+
     private Logger log = Logger.getLogger(Board.class);
 
 
@@ -35,10 +37,12 @@ public class Board extends Canvas {
     private JSONObject clients = new JSONObject();
     private JSONArray clientsArray = new JSONArray();
     private JSONArray foodArray = new JSONArray();
+    private JSONArray blackHoleArray = new JSONArray();
     private JSONArray clientsTop5 = new JSONArray();
     private Point linesShift = new Point(0, 0);
     private Client client = null;
     private long fps = 1;
+    private ImageFactory imageFactory = null;
 
     private final Object lock = new Object();
 
@@ -47,6 +51,7 @@ public class Board extends Canvas {
 
         this.shell = shell;
         display = shell.getDisplay();
+        imageFactory = ImageFactory.getInstance(display);
         addListener(SWT.Paint, event -> doPainting(event));//Слушатель события redraw()
         Color col = new Color(shell.getDisplay(), 255, 255, 255);
 
@@ -83,6 +88,7 @@ public class Board extends Canvas {
         this.uuid = client.getUUID();
         clientsArray = (JSONArray) clients.get("clients");
         foodArray = (JSONArray) clients.get("food");
+        blackHoleArray = (JSONArray) clients.get("blackhole");
         this.clientsTop5 = (JSONArray) clients.get("top5");
         if (clientsArray.size() > 0) {
             Display.getDefault().asyncExec(() -> {
@@ -112,10 +118,13 @@ public class Board extends Canvas {
         gc.setLineWidth(1);
         e.gc.setForeground(colLine);
         for (int i = 0; i < Ball.WIDTH; i += Ball.LINE_SPACE_SIZE) {
+
             gc.drawLine(0, i + linesShift.y, Ball.WIDTH, i + linesShift.y);//горизонтальные
             gc.drawLine(i + linesShift.x, 0, i + linesShift.x, Ball.HEIGHT);//вертикальные
-            //            gc.drawLine(i + linesShift.x, 0,  Ball.HEIGHT,i + linesShift.x);//вертикальные
         }
+
+
+
         colLine.dispose();
         log.debug("Number of clients = " + clientsArray.size());
         if (clientsArray.size() > 0) {
@@ -191,6 +200,24 @@ public class Board extends Canvas {
                     new Point(((Long) food.get("x")).intValue(), ((Long) food.get("y")).intValue());
                 Point leftTop = Ball.getLeftTopPosition(center, Ball.FOOD_RADIUS);
                 e.gc.fillOval(leftTop.x, leftTop.y, Ball.FOOD_RADIUS * 2, Ball.FOOD_RADIUS * 2);
+            }
+
+            for (int i = 0; i < blackHoleArray.size(); i++) {
+                JSONObject hole = (JSONObject) blackHoleArray.get(i);
+                Point leftTop =
+                    new Point(((Long) hole.get("x")).intValue(), ((Long) hole.get("y")).intValue());
+                int imageNum = ((Long) hole.get("id")).intValue();
+                if (imageNum == 1) {
+                    gc.drawImage(imageFactory.getBlackHole1(), leftTop.x, leftTop.y);
+                } else if (imageNum == 2) {
+                    gc.drawImage(imageFactory.getBlackHole2(), leftTop.x, leftTop.y);
+                } else if (imageNum == 3) {
+                    gc.drawImage(imageFactory.getBlackHole3(), leftTop.x, leftTop.y);
+                } else if (imageNum == 4) {
+                    gc.drawImage(imageFactory.getBlackHole4(), leftTop.x, leftTop.y);
+                } else if (imageNum == 5) {
+                    gc.drawImage(imageFactory.getBlackHole5(), leftTop.x, leftTop.y);
+                }
             }
 
         }

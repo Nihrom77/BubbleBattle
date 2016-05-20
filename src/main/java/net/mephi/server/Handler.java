@@ -1,6 +1,7 @@
 package net.mephi.server;
 
 import net.mephi.client.components.Ball;
+import net.mephi.client.components.BlackHole;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.graphics.Point;
 import org.json.simple.JSONArray;
@@ -181,9 +182,9 @@ public class Handler implements Runnable {
      * @return Объект пересылки
      */
     private JSONObject getAllResponceData(String uuid) {
-        List<Client> list = col.getClientsList();
+        List<Client> clients = col.getClientsList();
         Client responceTo = null;
-        for (Client c : list) {
+        for (Client c : clients) {
             if (c.getUUID().equals(uuid)) {
                 responceTo = c;
                 break;
@@ -191,9 +192,17 @@ public class Handler implements Runnable {
         }
 
 
-        Ball[] food = col.getFoodList();
         JSONObject response = new JSONObject();
         response.put("type", "refresh");
+        response.put("food", getFoodArray(col.getFoodList(), responceTo));
+        response.put("blackhole", getHolesArray(col.getHoles(), responceTo));
+        response.put("clients", getClientsArray(clients, responceTo));
+        response.put("top5", getTop5Array(clients));
+
+        return response;
+    }
+
+    public JSONArray getFoodArray(Ball[] food, Client responceTo) {
         JSONArray arrayFood = new JSONArray();
         for (Ball b : food) {
             if (b.isVisible() && responceTo.getBall().isBallInCurrentField(b)) {
@@ -213,10 +222,28 @@ public class Handler implements Runnable {
             }
 
         }
-        response.put("food", arrayFood);
+        return arrayFood;
+    }
 
+    public JSONArray getHolesArray(BlackHole[] holes, Client responceTo) {
+        JSONArray arrayHoles = new JSONArray();
+        for (BlackHole hole : holes) {
+            if (responceTo.getBall().isBallInCurrentField(hole)) {
+                JSONObject holeCoord = new JSONObject();
+                holeCoord.put("x", hole.getCenterGlobalPosition().x - responceTo.getBall()
+                    .getLeftTopFieldPosition().x);
+                holeCoord.put("y", hole.getCenterGlobalPosition().y - responceTo.getBall()
+                    .getLeftTopFieldPosition().y);
+                holeCoord.put("id", hole.getImageNumber());
+                arrayHoles.add(holeCoord);
+            }
+        }
+        return arrayHoles;
+    }
+
+    public JSONArray getClientsArray(List<Client> clients, Client responceTo) {
         JSONArray arrayClient = new JSONArray();
-        for (Client c : list) {
+        for (Client c : clients) {
             if (responceTo.getBall().isBallInCurrentField(c.getBall())) {
                 JSONObject balls = new JSONObject();
                 balls.put("x", c.getBall().getCenterGlobalPosition().x - responceTo.getBall()
@@ -235,24 +262,24 @@ public class Handler implements Runnable {
                 arrayClient.add(balls);
             }
         }
-        response.put("clients", arrayClient);
+        return arrayClient;
+    }
 
+    public JSONArray getTop5Array(List<Client> clients) {
         //Top5
         JSONArray arrayClientTop5 = new JSONArray();
-        Collections.sort(list, new Comparator<Client>() {
+        Collections.sort(clients, new Comparator<Client>() {
             @Override public int compare(Client o1, Client o2) {
                 return (int) Math.signum(o1.getBall().getRadius() - o2.getBall().getRadius());
             }
         });
-        for (int i = 0; i < Math.min(5, list.size()); i++) {
+        for (int i = 0; i < Math.min(5, clients.size()); i++) {
             JSONObject ball = new JSONObject();
-            ball.put("name", list.get(i).getBall().getName());
-            ball.put("score", list.get(i).getBall().getRadius());
+            ball.put("name", clients.get(i).getBall().getName());
+            ball.put("score", clients.get(i).getBall().getRadius());
             arrayClientTop5.add(ball);
         }
-        response.put("top5", arrayClientTop5);
 
-        return response;
+        return arrayClientTop5;
     }
-
 }

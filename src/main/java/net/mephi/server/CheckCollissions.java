@@ -1,7 +1,9 @@
 package net.mephi.server;
 
 import net.mephi.client.components.Ball;
+import net.mephi.client.components.BlackHole;
 import net.mephi.client.components.Board;
+import net.mephi.client.components.ImageFactory;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.graphics.Point;
 
@@ -25,9 +27,13 @@ public class CheckCollissions implements Runnable {
     private Map<String, Point> clients4Update = new HashMap<>();
     private List<Client> clientList4Register = new ArrayList<>();
     private Ball[] foods = new Ball[Board.MAX_FOOD_AMOUNT];
+    private BlackHole[] holes = new BlackHole[Board.BLACK_HOLES_AMOUNT];
     public Object lock = new Object();
 
     public CheckCollissions() {
+        //расставляем черные дыры на поле.
+        locateBlackHoles();
+
         //Инициализация массива еды
         locateFood();
     }
@@ -83,6 +89,15 @@ public class CheckCollissions implements Runnable {
     }
 
     public void checkCollissions() {
+        //столкновение клиентов и черных дыр
+        for (BlackHole b : holes) {
+            for (Client client : clientsList) {
+                if (b.checkCollisionTo(client.getBall())) {
+                    b.decreaseMass(client.getBall());
+                    log.debug("Client " + client + " near BlackHole " + b);
+                }
+            }
+        }
 
         //столкновения клиентов и еды
         for (Ball food : foods) {
@@ -138,8 +153,24 @@ public class CheckCollissions implements Runnable {
         }
     }
 
+    public void locateBlackHoles() {
+        log.debug("Black holes amount = " + Board.BLACK_HOLES_AMOUNT);
+        for (int i = 0; i < Board.BLACK_HOLES_AMOUNT; i++) {
+
+            BlackHole b1 = new BlackHole();
+            b1.setImageNumber(i + 1);
+            b1.setEventHorizont(i + 1);
+            b1.setUserFieldPosition(b1.setRandomCenterPosition());
+            holes[i] = b1;
+        }
+    }
+
     public Ball[] getFoodList() {
         return foods;
+    }
+
+    public BlackHole[] getHoles() {
+        return holes;
     }
 
     public void updateClient(String uuid, Point field) {

@@ -81,6 +81,11 @@ public class Ball implements Serializable {
 
     public int getRadius() {
         return (int) Math.round(radius);
+        //        return radius;
+    }
+
+    public double getRadiusDouble() {
+        return radius;
     }
 
     public Color getColor() {
@@ -91,7 +96,7 @@ public class Ball implements Serializable {
         this.color = c;
     }
 
-    public void setRadius(int radius) {
+    public void setRadius(double radius) {
         this.radius = radius;
     }
 
@@ -228,8 +233,7 @@ public class Ball implements Serializable {
      * @return true, если enemyBall умер
      */
     public boolean checkCollisionTo(Ball enemyBall) {
-        double minCollisionLength =
-            (radius - radius * 0.05) + (enemyBall.getRadius() - enemyBall.getRadius() * 0.05);
+        double minCollisionLength = (radius * 0.95) + (enemyBall.getRadius() * 0.95);
         if (getCenterDistance(this.getCenterGlobalPosition(), enemyBall.getCenterGlobalPosition())
             < minCollisionLength) {
             return enemyBall.getRadius() < this.getRadius();
@@ -257,12 +261,13 @@ public class Ball implements Serializable {
             .nextInt(0, (int) Math.round(userField.height - userField.height * 0.05) + 1);
     }
 
-    public void setRandomCenterPosition() {
+    public Point setRandomCenterPosition() {
         int x =
             ThreadLocalRandom.current().nextInt(0, (int) (Board.WIDTH - Board.WIDTH * 0.05) + 1);
         int y =
             ThreadLocalRandom.current().nextInt(0, (int) (Board.HEIGHT - Board.HEIGHT * 0.05) + 1);
         center = new Point(x, y); //глобальные для еды.
+        return center;
     }
 
     public void setRandomColor() {
@@ -290,6 +295,12 @@ public class Ball implements Serializable {
         return new Point(userField.x, userField.y);
     }
 
+    /**
+     * Проверка, попадает otherBall в область вилимости данного шара
+     *
+     * @param otherBall
+     * @return
+     */
     public boolean isBallInCurrentField(Ball otherBall) {
         Point center;
         if (otherBall.isFood()) {
@@ -297,8 +308,10 @@ public class Ball implements Serializable {
         } else {
             center = otherBall.getCenterGlobalPosition();
         }
-        return center.x >= userField.x && center.x <= userField.x + userField.width
-            && center.y >= userField.y && center.y <= userField.y + userField.height;
+        return center.x >= userField.x - Ball.MAX_RADIUS
+            && center.x <= userField.x + userField.width + Ball.MAX_RADIUS
+            && center.y >= userField.y - Ball.MAX_RADIUS
+            && center.y <= userField.y + userField.height + Ball.MAX_RADIUS;
     }
 
     public Point getLinesShift() {
@@ -332,4 +345,6 @@ public class Ball implements Serializable {
 
         return new Point(0, 0);
     }
+
+
 }
