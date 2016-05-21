@@ -16,6 +16,12 @@ import org.eclipse.swt.widgets.Shell;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+/**
+ * Доска для перерисовки поля.
+ *
+ * @author Julia
+ * @since 01.01.0001
+ */
 public class Board extends Canvas {
 
     public static final int WIDTH = 10000;
@@ -52,14 +58,17 @@ public class Board extends Canvas {
         this.shell = shell;
         display = shell.getDisplay();
         imageFactory = ImageFactory.getInstance(display);
-        addListener(SWT.Paint, event -> doPainting(event));//Слушатель события redraw()
-        Color col = new Color(shell.getDisplay(), 255, 255, 255);
-
+        addListener(SWT.Paint,
+            event -> doPainting(event));//Слушатель события PAINT. На это событие вызывает метод
+        Color col = new Color(shell.getDisplay(), 255, 255, 255);//Белый фон
         setBackground(col);
         col.dispose();
 
     }
 
+    /**
+     * Считываем новую позицию курсора для следующего цикла
+     */
     private void updateCursorLocation() {
         Point cursorMonitorLocation = Display.getCurrent().getCursorLocation();
         if (Display.getCurrent() != null && Display.getCurrent().getFocusControl() != null) {
@@ -80,20 +89,21 @@ public class Board extends Canvas {
      * Перерисовать доску.
      * Выполнется в потоке SWT.
      */
-    public void refreshBoard(JSONObject clients, Point linesShift, Client client, long fps) {
-        this.clients = clients;
+    public void refreshBoard(JSONObject allResponceData, Point linesShift, Client client,
+        long fps) {
+        this.clients = allResponceData;//Вся полученная информация от мервера
         this.client = client;
         this.fps = fps;
         this.linesShift = linesShift;
         this.uuid = client.getUUID();
-        clientsArray = (JSONArray) clients.get("clients");
-        foodArray = (JSONArray) clients.get("food");
-        blackHoleArray = (JSONArray) clients.get("blackhole");
-        this.clientsTop5 = (JSONArray) clients.get("top5");
+        clientsArray = (JSONArray) allResponceData.get("clients");
+        foodArray = (JSONArray) allResponceData.get("food");
+        blackHoleArray = (JSONArray) allResponceData.get("blackhole");
+        this.clientsTop5 = (JSONArray) allResponceData.get("top5");
         if (clientsArray.size() > 0) {
-            Display.getDefault().asyncExec(() -> {
+            Display.getDefault().syncExec(() -> {
                 if (!shell.isDisposed()) {
-                    redraw();
+                    redraw();//Вызываем SWT событие Перерисовка (PAINT)
                 }
             });
         }
@@ -101,14 +111,19 @@ public class Board extends Canvas {
 
     }
 
+    /**
+     * При вызыве события PAINT, слушатель вызывает этот метод.
+     *
+     * @param e
+     */
     private void doPainting(Event e) {
         updateCursorLocation();
         log.debug("doPainting");
 
 
-        GC gc = e.gc;
-        gc.setAntialias(SWT.ON);
-        Color col = new Color(shell.getDisplay(), 255, 255, 255);
+        GC gc = e.gc; //SWT объект для рисования
+        gc.setAntialias(SWT.ON);//сглаживание краев
+        Color col = new Color(shell.getDisplay(), 255, 255, 255);//черный
         gc.setBackground(col);
         col.dispose();
 
@@ -118,14 +133,11 @@ public class Board extends Canvas {
         gc.setLineWidth(1);
         e.gc.setForeground(colLine);
         for (int i = 0; i < Ball.WIDTH; i += Ball.LINE_SPACE_SIZE) {
-
             gc.drawLine(0, i + linesShift.y, Ball.WIDTH, i + linesShift.y);//горизонтальные
             gc.drawLine(i + linesShift.x, 0, i + linesShift.x, Ball.HEIGHT);//вертикальные
         }
+        colLine.dispose();//для освобождения ресурсов
 
-
-
-        colLine.dispose();
         log.debug("Number of clients = " + clientsArray.size());
         if (clientsArray.size() > 0) {
             drawTopScores(e);
@@ -160,12 +172,17 @@ public class Board extends Canvas {
         }
     }
 
+    /**
+     * Нарисовать все объекты (еда, шарики и дыры)
+     * @param e
+     */
     private void drawObjects(Event e) {
         GC gc = e.gc;
 
-        Control c = Display.getCurrent().getFocusControl();
+        Control c =
+            Display.getCurrent().getFocusControl();//Если поле не в фокусе, то объекты не рисуются
         if (c != null) {
-            for (int i = 0; i < clientsArray.size(); ++i) {
+            for (int i = 0; i < clientsArray.size(); ++i) {//Рисуем Клиентов
                 JSONObject ball = (JSONObject) clientsArray.get(i);
                 Point center =
                     new Point(((Long) ball.get("x")).intValue(), ((Long) ball.get("y")).intValue());
@@ -174,7 +191,8 @@ public class Board extends Canvas {
                 Color boardCol = get25PercentBrighterColor(display, balCol);
                 e.gc.setBackground(boardCol);
                 Point leftTop = Ball.getLeftTopPosition(center, radius);
-                e.gc.fillOval(leftTop.x, leftTop.y, radius * 2, radius * 2);
+                e.gc.fillOval(leftTop.x, leftTop.y, radius * 2,
+                    radius * 2);//Нарисовать черный шар сзади, чтобы был как тень
                 e.gc.setBackground(balCol);
                 e.gc.fillOval(leftTop.x, leftTop.y, radius * 2 - (int) (radius * 2 * 0.02),
                     radius * 2 - (int) (radius * 2 * 0.02));
@@ -192,7 +210,7 @@ public class Board extends Canvas {
 
             }
 
-
+            //Рисуем клетки еды
             for (int i = 0; i < foodArray.size(); i++) {
                 JSONObject food = (JSONObject) foodArray.get(i);
                 e.gc.setBackground(getSWTColorFromJSON((JSONObject) food.get("color"), display));
@@ -202,11 +220,13 @@ public class Board extends Canvas {
                 e.gc.fillOval(leftTop.x, leftTop.y, Ball.FOOD_RADIUS * 2, Ball.FOOD_RADIUS * 2);
             }
 
+            //Рисуем черные дыры
             for (int i = 0; i < blackHoleArray.size(); i++) {
                 JSONObject hole = (JSONObject) blackHoleArray.get(i);
                 Point leftTop =
                     new Point(((Long) hole.get("x")).intValue(), ((Long) hole.get("y")).intValue());
-                int imageNum = ((Long) hole.get("id")).intValue();
+                int imageNum =
+                    ((Long) hole.get("id")).intValue();//Определяем номер картинки по переданному ID
                 if (imageNum == 1) {
                     gc.drawImage(imageFactory.getBlackHole1(), leftTop.x, leftTop.y);
                 } else if (imageNum == 2) {
@@ -246,11 +266,14 @@ public class Board extends Canvas {
     }
 
 
-
+    /**
+     * Нарисовать ТОП 5
+     * @param e
+     */
     private void drawTopScores(Event e) {
         GC gc = e.gc;
 
-        Font font = new Font(e.display, "Helvetica", 13, SWT.BOLD);
+        Font font = new Font(e.display, "Helvetica", 13, SWT.BOLD);//шрифт
         Color col1 = new Color(e.display, 0, 0, 0);
         gc.setFont(font);
         gc.setForeground(col1);
@@ -266,7 +289,7 @@ public class Board extends Canvas {
             }
 
             String out = i + 1 + ". " + StringUtils.rightPad(name, 5, '.') + "..." + StringUtils
-                .leftPad(score + "", 3, '.');
+                .leftPad(score + "", 3, '.');//выравнивание по точкам
             Point size = gc.textExtent(out);
             gc.drawText(out, Ball.WIDTH - 50 - size.x, 50 + (size.y * i));
         }

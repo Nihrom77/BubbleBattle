@@ -13,6 +13,12 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+/**
+ * Класс, запрашивает имя.
+ *
+ * @author Julia
+ * @since 01.01.0001
+ */
 public class InputDialog extends Dialog {
     private String message;
     private Logger log = Logger.getLogger(InputDialog.class);

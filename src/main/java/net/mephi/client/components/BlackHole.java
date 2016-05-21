@@ -3,7 +3,9 @@ package net.mephi.client.components;
 import org.eclipse.swt.graphics.Point;
 
 /**
- * Created by Snoll on 20.05.2016.
+ * Черные дыры.
+ * @author Julia
+ * @since 01.01.0001
  */
 public class BlackHole extends Ball {
     private Point center = new Point(0, 0);
@@ -49,7 +51,8 @@ public class BlackHole extends Ball {
 
     public boolean checkCollisionTo(Ball enemyBall) {
         double minCollisionLength = (getRadius() * 0.95) + (enemyBall.getRadius() * 0.95);
-        if (getCenterDistance(this.getCenterGlobalPosition(), enemyBall.getCenterGlobalPosition())
+        if (Ball
+            .getCenterDistance(this.getCenterGlobalPosition(), enemyBall.getCenterGlobalPosition())
             < minCollisionLength) {
             return true;
         }
@@ -57,7 +60,7 @@ public class BlackHole extends Ball {
     }
 
     /**
-     * Уменьшить полощадь на 1% от близости к черной дыре
+     * Уменьшить полощадь на 1%  к черной дыре
      *
      * @param b черная дыра
      */

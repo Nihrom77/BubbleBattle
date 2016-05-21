@@ -16,6 +16,13 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * Стартовый класс сервера.
+ * Создает NIO обработчик сообщений и впадает в бесконечный цикл по их получению.
+ *
+ * @author Julia
+ * @since 01.01.0001
+ */
 public class MultipleSocketServer implements Runnable {
 
     private final Selector _selector;
@@ -36,7 +43,8 @@ public class MultipleSocketServer implements Runnable {
 
 
     public MultipleSocketServer(int port) throws IOException {
-        CheckCollissions col = new CheckCollissions();
+        CheckCollissions col =
+            new CheckCollissions();//Запускает отдельный поток пересчета столкновений
         log.debug("Server started on " + port);
         Thread t = new Thread(col);
         t.setName("check collissions thread");
@@ -61,15 +69,12 @@ public class MultipleSocketServer implements Runnable {
 
         String port = args.length > 0 ? args[0] : "6999";
         try {
-            //            Properties p = new Properties();
-            //            p.load(input);
             _workerPool = Executors.newFixedThreadPool(WORKER_POOL_SIZE);
 
             MultipleSocketServer server = new MultipleSocketServer(Integer.parseInt(port));
             Thread t = new Thread(server);
             t.setName("Multiserver thread");
             t.start();
-            //            server.startServer();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -99,10 +104,10 @@ public class MultipleSocketServer implements Runnable {
 
     public void run() {
         try {
-            // Event Loop
+            // Бесконечный цикл работы сервера
             while (true) {
                 _selector.select();
-                Iterator it = _selector.selectedKeys().iterator();
+                Iterator it = _selector.selectedKeys().iterator();//Итератор по клиентам
 
                 while (it.hasNext()) {
                     SelectionKey sk = (SelectionKey) it.next();

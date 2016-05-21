@@ -29,7 +29,10 @@ import java.lang.reflect.Method;
 import java.net.Socket;
 
 /**
- * Created by Snoll on 12.05.2016.
+ * Стартовый класс клиента.
+ *
+ * @author Julia
+ * @since 01.01.0001
  */
 public class ClientLauncher {
 
@@ -45,6 +48,12 @@ public class ClientLauncher {
     }
 
 
+    /**
+     * Запуск работы клиента.
+     *
+     * @param host ip-адрес для подключения к серверу
+     * @param port порт для подключения к серверу.
+     */
     private void start(String host, String port) {
         Display display = new Display();
         Shell shell = new Shell(display, SWT.SHELL_TRIM | SWT.CENTER);
@@ -59,7 +68,7 @@ public class ClientLauncher {
         int y = bounds.y + (bounds.height - rect.height) / 2;
 
         shell.setLocation(x, y);
-        createTopMenu(shell);
+        createTopMenu(shell);//Создание верхнего меню (Файл, помощь)
         FillLayout layout = new FillLayout();
         shell.setLayout(layout);
 
@@ -85,15 +94,17 @@ public class ClientLauncher {
         client.setBall(ball);
         client.setBoard(board);
 
+        //Слушатель нажатия на крестик окна
         shell.addListener(SWT.Close, event -> {
-            log.debug("End game 4 " + client);
+            log.debug("End game  " + client);
             client.endGame();
             display.dispose();
         });
 
+        //Отправка данных для регистрации на сервере
         connectToServer(host, port, client);
         client.startGame();
-        while (!shell.isDisposed()) {
+        while (!shell.isDisposed()) {//
             if (!display.readAndDispatch()) {
                 display.sleep();
             }
@@ -102,7 +113,12 @@ public class ClientLauncher {
         display.dispose();
     }
 
-
+    /**
+     * Отправка данных для регистрации на сервере.
+     * @param host
+     * @param port
+     * @param client
+     */
     private void connectToServer(String host, String port, Client client) {
         try {
 
@@ -131,7 +147,7 @@ public class ClientLauncher {
             log.debug("sent: " + obj);
 
             //Получаем уникальный ID и глобальные координаты окна
-            String res = inFromServer.readLine();
+            String res = inFromServer.readLine();//Ждет ответ от серевера
             JSONParser parser = new JSONParser();
             try {
                 JSONObject o = (JSONObject) parser.parse(res);

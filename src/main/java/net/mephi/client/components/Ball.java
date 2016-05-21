@@ -10,7 +10,10 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Created by Acer on 16.01.2016.
+ * Базовый класс шаров. Игроки и клетки.
+ *
+ * @author Julia
+ * @since 01.01.0001
  */
 public class Ball implements Serializable {
     private Logger log = Logger.getLogger(Ball.class);
@@ -24,7 +27,7 @@ public class Ball implements Serializable {
     public static final double MAX_RADIUS = HEIGHT / 3;
     public static final String FOOD_NAME = "";
     public static final int LINE_SPACE_SIZE = START_CLIENT_RADIUS;
-    private Point center = new Point(0, 0);
+    private Point centerGlobal = new Point(0, 0); //используется только для елы(клеток)
     private double radius;
     private Point cursorLocation = new Point(0, 0);
 
@@ -53,18 +56,18 @@ public class Ball implements Serializable {
 
     public Point getCenterGlobalPosition() {
         if (isFood) {
-            return center;
+            return centerGlobal;
         } else {
             return new Point(userField.x + userField.width / 2, userField.y + userField.height / 2);
         }
     }
 
     public void setCenterPosition(Point newCenter) {
-        this.center = newCenter;
+        this.centerGlobal = newCenter;
     }
 
-    public Point getCenter() {
-        return center;
+    public Point getCenterGlobal() {
+        return centerGlobal;
     }
 
     public static Point getLeftTopPosition(Point center, int radius) {
@@ -129,6 +132,11 @@ public class Ball implements Serializable {
         return isFood;
     }
 
+    /**
+     * Увеличить площадь шарика на площадь b
+     *
+     * @param b
+     */
     public void increaseMass(Ball b) {
 
         double r = ((Math.sqrt(radius * radius + (b.getRadius() * b.getRadius()))));
@@ -234,7 +242,7 @@ public class Ball implements Serializable {
      */
     public boolean checkCollisionTo(Ball enemyBall) {
         double minCollisionLength = (radius * 0.95) + (enemyBall.getRadius() * 0.95);
-        if (getCenterDistance(this.getCenterGlobalPosition(), enemyBall.getCenterGlobalPosition())
+        if (Ball.getCenterDistance(this.getCenterGlobalPosition(), enemyBall.getCenterGlobalPosition())
             < minCollisionLength) {
             return enemyBall.getRadius() < this.getRadius();
         }
@@ -266,8 +274,8 @@ public class Ball implements Serializable {
             ThreadLocalRandom.current().nextInt(0, (int) (Board.WIDTH - Board.WIDTH * 0.05) + 1);
         int y =
             ThreadLocalRandom.current().nextInt(0, (int) (Board.HEIGHT - Board.HEIGHT * 0.05) + 1);
-        center = new Point(x, y); //глобальные для еды.
-        return center;
+        centerGlobal = new Point(x, y); //глобальные для еды.
+        return centerGlobal;
     }
 
     public void setRandomColor() {
@@ -287,7 +295,7 @@ public class Ball implements Serializable {
      * @param center2
      * @return
      */
-    public double getCenterDistance(Point center1, Point center2) {
+    public static double getCenterDistance(Point center1, Point center2) {
         return Math.sqrt(Math.pow(center2.x - center1.x, 2) + Math.pow(center2.y - center1.y, 2));
     }
 
@@ -304,7 +312,7 @@ public class Ball implements Serializable {
     public boolean isBallInCurrentField(Ball otherBall) {
         Point center;
         if (otherBall.isFood()) {
-            center = otherBall.center;
+            center = otherBall.centerGlobal;
         } else {
             center = otherBall.getCenterGlobalPosition();
         }

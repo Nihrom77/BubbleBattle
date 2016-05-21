@@ -14,14 +14,16 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by Snoll on 16.05.2016.
+ * Класс пересчета столкновений.
+ * @author Julia
+ * @since 01.01.0001
  */
 public class CheckCollissions implements Runnable {
 
     private Logger log = Logger.getLogger(MultipleSocketServer.class);
 
 
-    private List<Client> clientsList = new ArrayList<>();
+    private List<Client> clientsList = new ArrayList<>();//Основной список, где хранятся все клиенты
 
     private List<String> clientList4Delete = new ArrayList<>();
     private Map<String, Point> clients4Update = new HashMap<>();
@@ -45,8 +47,8 @@ public class CheckCollissions implements Runnable {
                     .addAll(clientList4Register);//добавить только что зарегистрированных клиентов
                 clientList4Register.clear();
 
-                for (Iterator<Client> iterator = clientsList.iterator(); iterator
-                    .hasNext(); ) {//Обновить данные клиентов
+                for (Iterator<Client> iterator = clientsList.iterator(); iterator.hasNext(); ) {
+                    //Обновить данные клиентов
                     Client c = iterator.next();
                     if (clients4Update.containsKey(c.getUUID())) {
                         c.getBall().setUserFieldPosition(clients4Update.get(c.getUUID()));
@@ -58,6 +60,7 @@ public class CheckCollissions implements Runnable {
                 }
                 clients4Update.clear();
 
+                //Закончили обновлять clientsList
 
                 checkCollissions();
             }
@@ -88,6 +91,9 @@ public class CheckCollissions implements Runnable {
         return l;
     }
 
+    /**
+     * Метод проверки столкновений
+     */
     public void checkCollissions() {
         //столкновение клиентов и черных дыр
         for (BlackHole b : holes) {
@@ -110,10 +116,9 @@ public class CheckCollissions implements Runnable {
                         log.debug("Client " + client + " eated");
                     }
                 }
-
-
             }
         }
+
         //Съеденную еду перенести на новое место
         for (Ball food : foods) {
             if (!food.isVisible()) {

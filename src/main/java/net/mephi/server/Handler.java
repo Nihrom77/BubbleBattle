@@ -21,7 +21,10 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Created by Snoll on 15.05.2016.
+ * Обработчик принятых от клиентов сообщений.
+ * Занимается регистрацией новых клинетов, получением данных от зарегистрированных.
+ * @author Julia
+ * @since 01.01.0001
  */
 public class Handler implements Runnable {
     private final SocketChannel _socketChannel;
@@ -49,6 +52,9 @@ public class Handler implements Runnable {
         selector.wakeup(); // let blocking select() return
     }
 
+    /**
+     * Запускается из MultiSocketServer:111
+     */
     public void run() {
         try {
             if (_selectionKey.isReadable()) {
@@ -61,7 +67,7 @@ public class Handler implements Runnable {
         }
     }
 
-    // Process data by echoing input to output
+    // Обработка входящих данных от клиентов
     synchronized void process() {
         _readBuf.flip();
         byte[] bytes = new byte[_readBuf.remaining()];
@@ -72,12 +78,13 @@ public class Handler implements Runnable {
             JSONParser parser = new JSONParser();
             JSONObject o = (JSONObject) parser.parse(s);
             log.debug("received " + o.toString());
+
             if (o.get("type").equals("register")) {
                 log.debug("New client connected");
 
                 //читаем имя, цвет и размер экрана
                 Ball b = new Ball((String) o.get("name"), Ball.START_CLIENT_RADIUS);
-                //
+
                 b.getUserField().width = ((Long) o.get("width")).intValue();
                 b.getUserField().height = ((Long) o.get("height")).intValue();
                 JSONObject color = (JSONObject) o.get("color");
@@ -87,7 +94,7 @@ public class Handler implements Runnable {
 
 
                 Client c = new Client(null);
-                UUID uuid = UUID.randomUUID();
+                UUID uuid = UUID.randomUUID();//Уникальный номер клиента
                 c.setUUID(uuid.toString());
                 c.setBall(b);
 
@@ -107,7 +114,7 @@ public class Handler implements Runnable {
                 log.debug("registered new Client: " + c);
 
             } else if (o.get("type").equals("cursor")) {
-                //Пришли новые координаты поля
+                //Пришли новые координаты поля от клиента
                 col.updateClient((String) o.get("uuid"),
                     new Point(((Long) o.get("x")).intValue(), ((Long) o.get("y")).intValue()));
                 //отправляем все объекты
@@ -120,7 +127,6 @@ public class Handler implements Runnable {
 
                 col.getClientsList4Delete().add((String) o.get("uuid"));
                 _selectionKey.cancel();
-                //                _selectionKey.channel().close();
                 return;
             }
         } catch (ParseException p) {
@@ -137,7 +143,6 @@ public class Handler implements Runnable {
         try {
             int numBytes = _socketChannel.read(_readBuf);
 
-            //            System.out.println("read(): #bytes read into '_readBuf' buffer = " + numBytes);
             if (numBytes == -1) {
                 _selectionKey.cancel();
                 _socketChannel.close();
@@ -207,10 +212,10 @@ public class Handler implements Runnable {
         for (Ball b : food) {
             if (b.isVisible() && responceTo.getBall().isBallInCurrentField(b)) {
                 JSONObject foodCoord = new JSONObject();
-                foodCoord
-                    .put("x", b.getCenter().x - responceTo.getBall().getLeftTopFieldPosition().x);
-                foodCoord
-                    .put("y", b.getCenter().y - responceTo.getBall().getLeftTopFieldPosition().y);
+                foodCoord.put("x",
+                    b.getCenterGlobal().x - responceTo.getBall().getLeftTopFieldPosition().x);
+                foodCoord.put("y",
+                    b.getCenterGlobal().y - responceTo.getBall().getLeftTopFieldPosition().y);
 
                 JSONObject color = new JSONObject();
                 color.put("red", b.getColor().getRed());
@@ -269,7 +274,8 @@ public class Handler implements Runnable {
         //Top5
         JSONArray arrayClientTop5 = new JSONArray();
         Collections.sort(clients, new Comparator<Client>() {
-            @Override public int compare(Client o1, Client o2) {
+            @Override public int compare(Client o1,
+                Client o2) { //сортировка массива клиентов по убыванию радиуса
                 return (int) Math.signum(o1.getBall().getRadius() - o2.getBall().getRadius());
             }
         });

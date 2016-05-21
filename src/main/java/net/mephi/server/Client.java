@@ -14,7 +14,10 @@ import java.io.IOException;
 import java.net.Socket;
 
 /**
- * Created by Snoll on 11.05.2016.
+ * Клиент. Хранит информацию о шаре.
+ * Содержит поток для обмена сообщений с сервером.
+ * @author Julia
+ * @since 01.01.0001
  */
 public class Client {
     private String clientName = "anon";
@@ -112,7 +115,8 @@ public class Client {
                         log.debug("send " + obj.toString());
                         long cursorTime = System.currentTimeMillis();
                         log.debug("cursor Time " + (cursorTime - t1));
-                        outToServer.write(obj.toString().getBytes());
+                        outToServer
+                            .write(obj.toString().getBytes());//Отправка нового положения на сервер
                         long writeTime = System.currentTimeMillis();
                         log.debug("write time " + (writeTime - cursorTime));
                         try {
@@ -120,7 +124,7 @@ public class Client {
                             String res = inFromServer.readLine();
                             long readTime = System.currentTimeMillis();
                             log.debug("read Time " + (readTime - writeTime));
-                            JSONObject o = (JSONObject) parser.parse(res);
+                            JSONObject o = (JSONObject) parser.parse(res);//Парсим JSON
                             log.debug("receive " + o.toString());
                             if (o.get("type").equals("refresh")) {
                                 //перерисовать доску
@@ -135,12 +139,13 @@ public class Client {
 
 
                         long t2 = System.currentTimeMillis();
-                        fps = t2 - t1;
+                        fps = t2 - t1; //Время в миллисекундах, затраченное на один цикл
                         log.debug("general Time =" + (t2 - t1));
                         if (t2 - t1 < 20) {
                             try {
                                 fps = 20 - (t2 - t1);
-                                Thread.sleep(20 - (t2 - t1));
+                                Thread.sleep(20 - (t2
+                                    - t1));//Текущий поток спит, чтобы не чаще раз 20 миллисекунд опрашивать сервер
                             } catch (InterruptedException e) {
                             }
                         }
@@ -152,7 +157,7 @@ public class Client {
                     log.debug("send " + obj.toString());
                     outToServer.write(obj.toString().getBytes());
 
-                    oos.close();
+                    oos.close();//Закрыть соединение
                     ois.close();
                     getSocket().close();
 
