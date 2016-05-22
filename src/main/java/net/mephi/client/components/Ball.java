@@ -5,7 +5,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 
 import java.awt.*;
-import java.io.Serializable;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -13,18 +12,16 @@ import java.util.concurrent.ThreadLocalRandom;
  * Базовый класс шаров. Игроки и клетки.
  *
  * @author Julia
- * @since 01.01.0001
+ * @since 01.01.2016
  */
-public class Ball implements Serializable {
+public class Ball {
     private Logger log = Logger.getLogger(Ball.class);
 
-    public static final int WIDTH = (int) (Toolkit.getDefaultToolkit().getScreenSize().width * 0.9);
-    public static final int HEIGHT =
-        (int) (Toolkit.getDefaultToolkit().getScreenSize().height * 0.9);
-    public static final int START_CLIENT_RADIUS = (int) (HEIGHT * 0.05);
+
+    public static final int START_CLIENT_RADIUS = (int) (Board.USERFIELD_HEIGHT * 0.05);
     public static final int FOOD_RADIUS = START_CLIENT_RADIUS / 4;
     public static final int END_GAME_RADIUS = 0;
-    public static final double MAX_RADIUS = HEIGHT / 3;
+    public static final double MAX_RADIUS = Board.USERFIELD_HEIGHT / 3;
     public static final String FOOD_NAME = "";
     public static final int LINE_SPACE_SIZE = START_CLIENT_RADIUS;
     private Point centerGlobal = new Point(0, 0); //используется только для елы(клеток)
@@ -62,9 +59,6 @@ public class Ball implements Serializable {
         }
     }
 
-    public void setCenterPosition(Point newCenter) {
-        this.centerGlobal = newCenter;
-    }
 
     public Point getCenterGlobal() {
         return centerGlobal;
@@ -78,9 +72,6 @@ public class Ball implements Serializable {
         cursorLocation = p;
     }
 
-    public Point getCursorLocation() {
-        return cursorLocation;
-    }
 
     public int getRadius() {
         return (int) Math.round(radius);
@@ -167,7 +158,7 @@ public class Ball implements Serializable {
                 .pow(relativeCursorLocation.y - getCenterLocalPosition().y, 2));//всегда >0
         double AC = relativeCursorLocation.x - getCenterLocalPosition().x;//<0 если шаг влево
         double BC = relativeCursorLocation.y - getCenterLocalPosition().y;//<0 если шаг вверх
-        double A1B1 = AB / radius;
+        double A1B1 = AB / radius * 0.7;
 
         double A1C1 = A1B1 * AC / AB;//<0 если шаг влево
         double B1C1 = A1B1 * BC / AB;//<0 если шаг вверх
@@ -235,18 +226,26 @@ public class Ball implements Serializable {
     }
 
     /**
-     * Проверка столкновения
+     * Проверка пересечения двух шаров
      *
-     * @param enemyBall
-     * @return true, если enemyBall умер
+     * @param otherBall
+     * @return true, если расстояние между центрами шаров меньше 95% от суммы их радиусов.
      */
-    public boolean checkCollisionTo(Ball enemyBall) {
-        double minCollisionLength = (radius * 0.95) + (enemyBall.getRadius() * 0.95);
-        if (Ball.getCenterDistance(this.getCenterGlobalPosition(), enemyBall.getCenterGlobalPosition())
-            < minCollisionLength) {
-            return enemyBall.getRadius() < this.getRadius();
-        }
-        return false;
+    public boolean checkCollisionTo(Ball otherBall) {
+        double minCollisionLength = 0.95 * (radius + otherBall.getRadius());
+        return (Ball.getCenterDistance(this.getCenterGlobalPosition(),
+            otherBall.getCenterGlobalPosition()) < minCollisionLength);
+    }
+
+    /**
+     * Проверка, может ли данный шар поглотить enemyBall
+     *
+     * @param enemyBall Другой шар
+     * @return true, если данный и enemyBall пересекаются и enemyBall меньше.
+     */
+    public boolean isThisCanIt(Ball enemyBall) {
+        return checkCollisionTo(enemyBall) && enemyBall.getRadius() < this.getRadius();
+
     }
 
     public void setName(String newName) {

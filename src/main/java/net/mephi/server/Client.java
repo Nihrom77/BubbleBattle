@@ -16,11 +16,11 @@ import java.net.Socket;
 /**
  * Клиент. Хранит информацию о шаре.
  * Содержит поток для обмена сообщений с сервером.
+ *
  * @author Julia
- * @since 01.01.0001
+ * @since 01.01.2016
  */
 public class Client {
-    private String clientName = "anon";
     private Socket socket = null;
 
     private Client thisClient = null;
@@ -31,7 +31,6 @@ public class Client {
     private Board board;
     private boolean isActive = true;
     public static final String DATA_REQUEST = "DATA_REQUEST";
-    private Point cursor = new Point(0, 0);
     private Logger log = Logger.getLogger(MultipleSocketServer.class);
 
     public Client() {
@@ -67,13 +66,7 @@ public class Client {
         return ball;
     }
 
-    public Point getCursorPosition() {
-        return cursor;
-    }
 
-    public void setCursorPosition(Point cursor) {
-        this.cursor = cursor;
-    }
 
     public void setSocket(Socket socket) {
         this.socket = socket;
@@ -96,7 +89,7 @@ public class Client {
                     DataOutputStream outToServer = getOos();
                     BufferedReader inFromServer = getOis();
                     JSONParser parser = new JSONParser();
-                    long fps = 0;
+                    long time4OneCycle = 0;
 
                     while (isActive) {
 
@@ -113,39 +106,32 @@ public class Client {
                         obj.put("y", ball.getUserField().y);
 
                         log.debug("send " + obj.toString());
-                        long cursorTime = System.currentTimeMillis();
-                        log.debug("cursor Time " + (cursorTime - t1));
                         outToServer
                             .write(obj.toString().getBytes());//Отправка нового положения на сервер
-                        long writeTime = System.currentTimeMillis();
-                        log.debug("write time " + (writeTime - cursorTime));
                         try {
                             //ожидать обработанных данных
                             String res = inFromServer.readLine();
-                            long readTime = System.currentTimeMillis();
-                            log.debug("read Time " + (readTime - writeTime));
                             JSONObject o = (JSONObject) parser.parse(res);//Парсим JSON
                             log.debug("receive " + o.toString());
                             if (o.get("type").equals("refresh")) {
                                 //перерисовать доску
 
-                                board.refreshBoard(o, ball.getLinesShift(), thisClient, fps);
+                                board.refreshBoard(o, ball.getLinesShift(), thisClient,
+                                    time4OneCycle);
                             }
-                            long refreshTime = System.currentTimeMillis();
-                            log.debug("refresh Time " + (refreshTime - readTime));
                         } catch (ParseException e) {
                             log.error(e);
                         }
 
 
                         long t2 = System.currentTimeMillis();
-                        fps = t2 - t1; //Время в миллисекундах, затраченное на один цикл
-                        log.debug("general Time =" + (t2 - t1));
-                        if (t2 - t1 < 20) {
+                        time4OneCycle = t2 - t1; //Время в миллисекундах, затраченное на один цикл
+                        log.debug("general Time =" + time4OneCycle);
+                        if (time4OneCycle < 20) {
                             try {
-                                fps = 20 - (t2 - t1);
-                                Thread.sleep(20 - (t2
-                                    - t1));//Текущий поток спит, чтобы не чаще раз 20 миллисекунд опрашивать сервер
+                                time4OneCycle = 20 - time4OneCycle;
+                                Thread.sleep(20
+                                    - time4OneCycle);//Текущий поток спит, чтобы не чаще раз 20 миллисекунд опрашивать сервер
                             } catch (InterruptedException e) {
                             }
                         }

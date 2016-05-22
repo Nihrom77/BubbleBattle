@@ -16,16 +16,29 @@ import org.eclipse.swt.widgets.Shell;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import java.awt.*;
+
 /**
  * Доска для перерисовки поля.
  *
  * @author Julia
- * @since 01.01.0001
+ * @since 01.01.2016
  */
 public class Board extends Canvas {
 
+    /**
+     * Размер глобального поля.
+     */
     public static final int WIDTH = 10000;
     public static final int HEIGHT = 10000;
+
+    /**
+     * Размер окна у пользователя на экране = 90% от ширины(высоты) монитора в пикселях.
+     */
+    public static final int USERFIELD_WIDTH =
+        (int) (Toolkit.getDefaultToolkit().getScreenSize().width * 0.9);
+    public static final int USERFIELD_HEIGHT =
+        (int) (Toolkit.getDefaultToolkit().getScreenSize().height * 0.9);
 
 
     public static final int FOOD_SIZE_RADIUS = (int) (WIDTH * 0.001 + 5);
@@ -36,7 +49,7 @@ public class Board extends Canvas {
 
 
     private boolean inGame = true;
-    private Point cursorLocation = new Point(Ball.WIDTH / 2, Ball.HEIGHT / 2);
+    private Point cursorLocation = new Point(USERFIELD_WIDTH / 2, USERFIELD_HEIGHT / 2);
     private Display display;
     private Shell shell;
     private String uuid;
@@ -47,10 +60,12 @@ public class Board extends Canvas {
     private JSONArray clientsTop5 = new JSONArray();
     private Point linesShift = new Point(0, 0);
     private Client client = null;
+    /**
+     * Число кадров в секунду
+     */
     private long fps = 1;
     private ImageFactory imageFactory = null;
 
-    private final Object lock = new Object();
 
     public Board(Shell shell) {
         super(shell, SWT.DOUBLE_BUFFERED);
@@ -77,6 +92,7 @@ public class Board extends Canvas {
 
         }
     }
+
     public Point getCursorLocation() {
         return this.cursorLocation;
     }
@@ -90,10 +106,10 @@ public class Board extends Canvas {
      * Выполнется в потоке SWT.
      */
     public void refreshBoard(JSONObject allResponceData, Point linesShift, Client client,
-        long fps) {
+        long time4OneCycle) {
         this.clients = allResponceData;//Вся полученная информация от мервера
         this.client = client;
-        this.fps = fps;
+        this.fps = Math.round(1000.0 / (time4OneCycle == 0 ? 1 : time4OneCycle));
         this.linesShift = linesShift;
         this.uuid = client.getUUID();
         clientsArray = (JSONArray) allResponceData.get("clients");
@@ -123,7 +139,7 @@ public class Board extends Canvas {
 
         GC gc = e.gc; //SWT объект для рисования
         gc.setAntialias(SWT.ON);//сглаживание краев
-        Color col = new Color(shell.getDisplay(), 255, 255, 255);//черный
+        Color col = getWhiteColor(e.display);
         gc.setBackground(col);
         col.dispose();
 
@@ -132,9 +148,9 @@ public class Board extends Canvas {
         gc.setLineStyle(SWT.LINE_SOLID);
         gc.setLineWidth(1);
         e.gc.setForeground(colLine);
-        for (int i = 0; i < Ball.WIDTH; i += Ball.LINE_SPACE_SIZE) {
-            gc.drawLine(0, i + linesShift.y, Ball.WIDTH, i + linesShift.y);//горизонтальные
-            gc.drawLine(i + linesShift.x, 0, i + linesShift.x, Ball.HEIGHT);//вертикальные
+        for (int i = 0; i < USERFIELD_WIDTH; i += Ball.LINE_SPACE_SIZE) {
+            gc.drawLine(0, i + linesShift.y, USERFIELD_WIDTH, i + linesShift.y);//горизонтальные
+            gc.drawLine(i + linesShift.x, 0, i + linesShift.x, USERFIELD_HEIGHT);//вертикальные
         }
         colLine.dispose();//для освобождения ресурсов
 
@@ -158,8 +174,7 @@ public class Board extends Canvas {
             gc.setFont(font);
             gc.setForeground(col1);
             gc.drawText(getCursorLocation().toString(), 20, 20);
-            gc.drawText("FPS: " + String.valueOf(Math.round(1000.0 / (fps == 0 ? 1 : fps))), 20,
-                50);
+            gc.drawText("FPS: " + String.valueOf(fps), 20, 50);
             font.dispose();
             col1.dispose();
 
@@ -174,6 +189,7 @@ public class Board extends Canvas {
 
     /**
      * Нарисовать все объекты (еда, шарики и дыры)
+     *
      * @param e
      */
     private void drawObjects(Event e) {
@@ -187,13 +203,13 @@ public class Board extends Canvas {
                 Point center =
                     new Point(((Long) ball.get("x")).intValue(), ((Long) ball.get("y")).intValue());
                 int radius = ((Long) ball.get("radius")).intValue();
-                Color balCol = getSWTColorFromJSON((JSONObject) ball.get("color"), display);
-                Color boardCol = get25PercentBrighterColor(display, balCol);
+                Color ballColor = getSWTColorFromJSON((JSONObject) ball.get("color"), display);
+                Color boardCol = getBlackColor(display);
                 e.gc.setBackground(boardCol);
                 Point leftTop = Ball.getLeftTopPosition(center, radius);
                 e.gc.fillOval(leftTop.x, leftTop.y, radius * 2,
                     radius * 2);//Нарисовать черный шар сзади, чтобы был как тень
-                e.gc.setBackground(balCol);
+                e.gc.setBackground(ballColor);
                 e.gc.fillOval(leftTop.x, leftTop.y, radius * 2 - (int) (radius * 2 * 0.02),
                     radius * 2 - (int) (radius * 2 * 0.02));
 
@@ -227,23 +243,39 @@ public class Board extends Canvas {
                     new Point(((Long) hole.get("x")).intValue(), ((Long) hole.get("y")).intValue());
                 int imageNum =
                     ((Long) hole.get("id")).intValue();//Определяем номер картинки по переданному ID
+                BlackHole bh = new BlackHole(imageNum);
                 if (imageNum == 1) {
-                    gc.drawImage(imageFactory.getBlackHole1(), leftTop.x, leftTop.y);
+                    gc.drawImage(imageFactory.getBlackHoleImage1(),
+                        leftTop.x - bh.getUserField().width / 2,
+                        leftTop.y - bh.getUserField().height / 2);
                 } else if (imageNum == 2) {
-                    gc.drawImage(imageFactory.getBlackHole2(), leftTop.x, leftTop.y);
+                    gc.drawImage(imageFactory.getBlackHoleImage2(),
+                        leftTop.x - bh.getUserField().width / 2,
+                        leftTop.y - bh.getUserField().height / 2);
                 } else if (imageNum == 3) {
-                    gc.drawImage(imageFactory.getBlackHole3(), leftTop.x, leftTop.y);
+                    gc.drawImage(imageFactory.getBlackHoleImage3(),
+                        leftTop.x - bh.getUserField().width / 2,
+                        leftTop.y - bh.getUserField().height / 2);
                 } else if (imageNum == 4) {
-                    gc.drawImage(imageFactory.getBlackHole4(), leftTop.x, leftTop.y);
+                    gc.drawImage(imageFactory.getBlackHoleImage4(),
+                        leftTop.x - bh.getUserField().width / 2,
+                        leftTop.y - bh.getUserField().height / 2);
                 } else if (imageNum == 5) {
-                    gc.drawImage(imageFactory.getBlackHole5(), leftTop.x, leftTop.y);
+                    gc.drawImage(imageFactory.getBlackHoleImage5(),
+                        leftTop.x - bh.getUserField().width / 2,
+                        leftTop.y - bh.getUserField().height / 2);
                 }
             }
 
         }
     }
 
-
+    /**
+     * Вызывается, когда радиус у шара = 0.
+     * Показываем надпись Game Over.
+     *
+     * @param e
+     */
     private void gameOver(Event e) {
 
         GC gc = e.gc;
@@ -258,7 +290,7 @@ public class Board extends Canvas {
 
         Point size = gc.textExtent(msg);
 
-        gc.drawText(msg, (Ball.WIDTH - size.x) / 2, (Ball.HEIGHT - size.y) / 2);
+        gc.drawText(msg, (USERFIELD_WIDTH - size.x) / 2, (USERFIELD_HEIGHT - size.y) / 2);
 
         font.dispose();
         whiteCol.dispose();
@@ -268,6 +300,7 @@ public class Board extends Canvas {
 
     /**
      * Нарисовать ТОП 5
+     *
      * @param e
      */
     private void drawTopScores(Event e) {
@@ -277,7 +310,7 @@ public class Board extends Canvas {
         Color col1 = new Color(e.display, 0, 0, 0);
         gc.setFont(font);
         gc.setForeground(col1);
-        gc.drawText("TOP 5:", Ball.WIDTH - 130, 20);
+        gc.drawText("TOP 5:", USERFIELD_WIDTH - 130, 20);
 
 
         for (int i = 0; i < clientsTop5.size(); i++) {
@@ -291,7 +324,7 @@ public class Board extends Canvas {
             String out = i + 1 + ". " + StringUtils.rightPad(name, 5, '.') + "..." + StringUtils
                 .leftPad(score + "", 3, '.');//выравнивание по точкам
             Point size = gc.textExtent(out);
-            gc.drawText(out, Ball.WIDTH - 50 - size.x, 50 + (size.y * i));
+            gc.drawText(out, USERFIELD_WIDTH - 50 - size.x, 50 + (size.y * i));
         }
         font.dispose();
         col1.dispose();
@@ -307,11 +340,11 @@ public class Board extends Canvas {
         return getSWTColor(c, d);
     }
 
-    public Color get25PercentBrighterColor(Display d, Color c) {
-        //        int red = c.getRed();
-        //        float fraction = 0.25f; // brighten by 25%
-        //
-        //        red = (int) (red + (red * fraction));
+    public Color getBlackColor(Display d) {
         return new Color(d, 0, 0, 0);
+    }
+
+    public Color getWhiteColor(Display d) {
+        return new Color(d, 255, 255, 255);
     }
 }

@@ -23,8 +23,9 @@ import java.util.UUID;
 /**
  * Обработчик принятых от клиентов сообщений.
  * Занимается регистрацией новых клинетов, получением данных от зарегистрированных.
+ *
  * @author Julia
- * @since 01.01.0001
+ * @since 01.01.2016
  */
 public class Handler implements Runnable {
     private final SocketChannel _socketChannel;

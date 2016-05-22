@@ -32,7 +32,7 @@ import java.net.Socket;
  * Стартовый класс клиента.
  *
  * @author Julia
- * @since 01.01.0001
+ * @since 01.01.2016
  */
 public class ClientLauncher {
 
@@ -58,7 +58,7 @@ public class ClientLauncher {
         Display display = new Display();
         Shell shell = new Shell(display, SWT.SHELL_TRIM | SWT.CENTER);
         shell.setText("Bubble battle");
-        shell.setSize(Ball.WIDTH, Ball.HEIGHT);
+        shell.setSize(Board.USERFIELD_WIDTH, Board.USERFIELD_HEIGHT);
 
         Monitor primary = display.getPrimaryMonitor();
         Rectangle bounds = primary.getBounds();
@@ -115,6 +115,7 @@ public class ClientLauncher {
 
     /**
      * Отправка данных для регистрации на сервере.
+     *
      * @param host
      * @param port
      * @param client
@@ -133,8 +134,8 @@ public class ClientLauncher {
             color.put("green", client.getBall().getColor().getGreen());
             color.put("blue", client.getBall().getColor().getBlue());
             obj.put("color", color);
-            obj.put("width", Ball.WIDTH);
-            obj.put("height", Ball.HEIGHT);
+            obj.put("width", Board.USERFIELD_WIDTH);
+            obj.put("height", Board.USERFIELD_HEIGHT);
 
             DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
             BufferedReader inFromServer =
@@ -155,7 +156,8 @@ public class ClientLauncher {
                     client.setUUID((String) o.get("uuid"));
                     int x = ((Long) o.get("field.x")).intValue();
                     int y = ((Long) o.get("field.y")).intValue();
-                    client.getBall().setUserField(new Rectangle(x, y, Ball.WIDTH, Ball.HEIGHT));
+                    client.getBall().setUserField(
+                        new Rectangle(x, y, Board.USERFIELD_WIDTH, Board.USERFIELD_HEIGHT));
                     log.debug("Connected to server; ID=" + client.getUUID());
                 }
             } catch (ParseException e) {

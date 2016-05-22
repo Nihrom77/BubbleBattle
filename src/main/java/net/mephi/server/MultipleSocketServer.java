@@ -21,7 +21,7 @@ import java.util.concurrent.Executors;
  * Создает NIO обработчик сообщений и впадает в бесконечный цикл по их получению.
  *
  * @author Julia
- * @since 01.01.0001
+ * @since 01.01.2016
  */
 public class MultipleSocketServer implements Runnable {
 
@@ -31,15 +31,9 @@ public class MultipleSocketServer implements Runnable {
     private static ExecutorService _workerPool;
 
 
-    private List<Client> clientsList = new ArrayList<>();
-    private List<Client> clientList4Delete = new ArrayList<>();
     private Logger log = Logger.getLogger(MultipleSocketServer.class);
-    private CheckCollissions col;
 
 
-    private List<Client> clientList4Register = new ArrayList<>();
-    private Ball[] foods = new Ball[Board.MAX_FOOD_AMOUNT];
-    public Object lock = new Object();
 
 
     public MultipleSocketServer(int port) throws IOException {
@@ -82,7 +76,7 @@ public class MultipleSocketServer implements Runnable {
 
     }
 
-    // Acceptor: if connection is established, assign a handler to it.
+    // Acceptor: На каждое новое соединение (Сервер - клиент) цепляет обработчик - класс Handler
     private class Acceptor implements Runnable {
         CheckCollissions col;
 

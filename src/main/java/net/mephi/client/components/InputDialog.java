@@ -17,7 +17,7 @@ import org.eclipse.swt.widgets.Text;
  * Класс, запрашивает имя.
  *
  * @author Julia
- * @since 01.01.0001
+ * @since 01.01.2016
  */
 public class InputDialog extends Dialog {
     private String message;

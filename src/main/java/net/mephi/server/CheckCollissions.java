@@ -3,7 +3,6 @@ package net.mephi.server;
 import net.mephi.client.components.Ball;
 import net.mephi.client.components.BlackHole;
 import net.mephi.client.components.Board;
-import net.mephi.client.components.ImageFactory;
 import org.apache.log4j.Logger;
 import org.eclipse.swt.graphics.Point;
 
@@ -15,8 +14,9 @@ import java.util.Map;
 
 /**
  * Класс пересчета столкновений.
+ *
  * @author Julia
- * @since 01.01.0001
+ * @since 01.01.2016
  */
 public class CheckCollissions implements Runnable {
 
@@ -96,11 +96,11 @@ public class CheckCollissions implements Runnable {
      */
     public void checkCollissions() {
         //столкновение клиентов и черных дыр
-        for (BlackHole b : holes) {
+        for (BlackHole blackHole : holes) {
             for (Client client : clientsList) {
-                if (b.checkCollisionTo(client.getBall())) {
-                    b.decreaseMass(client.getBall());
-                    log.debug("Client " + client + " near BlackHole " + b);
+                if (blackHole.checkCollisionTo(client.getBall())) {
+                    blackHole.decreaseMassOf(client.getBall());
+                    log.debug("Client " + client + " near BlackHole " + blackHole);
                 }
             }
         }
@@ -131,7 +131,7 @@ public class CheckCollissions implements Runnable {
         for (Client client1 : clientsList) {
             for (Client client2 : clientsList) {
                 if (client1.getBall().isVisible() && client2.getBall().isVisible() && client1
-                    .getBall().checkCollisionTo(client2.getBall()) && !client1.getUUID()
+                    .getBall().isThisCanIt(client2.getBall()) && !client1.getUUID()
                     .equals(client2.getUUID())) {
 
                     client1.getBall().increaseMass(client2.getBall());
@@ -162,9 +162,7 @@ public class CheckCollissions implements Runnable {
         log.debug("Black holes amount = " + Board.BLACK_HOLES_AMOUNT);
         for (int i = 0; i < Board.BLACK_HOLES_AMOUNT; i++) {
 
-            BlackHole b1 = new BlackHole();
-            b1.setImageNumber(i + 1);
-            b1.setEventHorizont(i + 1);
+            BlackHole b1 = new BlackHole(i + 1);
             b1.setUserFieldPosition(b1.setRandomCenterPosition());
             holes[i] = b1;
         }

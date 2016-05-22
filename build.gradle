@@ -17,7 +17,7 @@ task copyRuntimeLibs(type: Copy) {
     into "build/libs/lib"
     from configurations.testRuntime
 }
-task copyStartFile(type:Copy) {
+task copyStartFile(type: Copy) {
     from 'build/resources/main'
     into 'build/libs'
     include '**/*.cmd'
